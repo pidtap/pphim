@@ -4,6 +4,8 @@ let fullEpisodeData = [];
 let currentMovieSlug = '';
 let videoPlayer = null;
 let currentMovieData = null;
+let relatedMoviesData = [];
+const movieDetailsCache = {};
 
 const API_SOURCES = {
     ophim: {
@@ -141,7 +143,7 @@ function renderServerButtons() {
             button.textContent = server.server_name;
             button.dataset.serverIndex = index;
 
-            button.addEventListener('click', function() {
+            button.addEventListener('click', function () {
                 document.querySelectorAll('.server-btn').forEach(btn => btn.classList.remove('active'));
                 this.classList.add('active');
                 updateEpisodeList(index);
@@ -185,11 +187,11 @@ function updateEpisodeList(serverIndex) {
             optionDiv.dataset.episodeIndex = index;
 
             // === FIX: THAY ĐỔI THỨ TỰ THỰC THI TRONG HÀM CLICK ===
-            optionDiv.addEventListener('click', function() {
+            optionDiv.addEventListener('click', function () {
                 // Bước 1: Đánh dấu tập đang chọn TRƯỚC TIÊN
                 selectItems.querySelectorAll('div').forEach(item => item.classList.remove('same-as-selected'));
                 this.classList.add('same-as-selected');
-                
+
                 // Bước 2: Cập nhật các thông tin hiển thị
                 selectSelected.textContent = this.textContent;
                 if (episodeInfo) {
@@ -199,7 +201,7 @@ function updateEpisodeList(serverIndex) {
                 // Bước 3: Phát phim. Hàm playEpisode sẽ gọi updateNavButtonStates
                 // và lúc này, tập đang chọn đã được đánh dấu nên các nút sẽ được cập nhật đúng.
                 playEpisode(this.dataset.m3u8, this.dataset.embed, serverIndex, parseInt(this.dataset.episodeIndex));
-                
+
                 // Bước 4: Ẩn danh sách chọn tập
                 selectItems.classList.add('select-hide');
             });
@@ -209,9 +211,9 @@ function updateEpisodeList(serverIndex) {
         const lastWatchedProgress = getWatchProgress(currentMovieSlug);
         let episodeToPlay;
 
-        if (lastWatchedProgress && lastWatchedProgress.serverIndex === serverIndex && lastWatchedProgress.episodeIndex !== undefined) {
-            episodeToPlay = selectItems.querySelector(`div[data-episode-index="${lastWatchedProgress.episodeIndex}"]`);
-        }
+        if (lastWatchedProgress && lastWatchedProgress.serverIndex === serverIndex && lastWatchedProgress.lastEpisodeIndex !== undefined) {
+    episodeToPlay = selectItems.querySelector(`div[data-episode-index="${lastWatchedProgress.lastEpisodeIndex}"]`);
+}
 
         if (!episodeToPlay) {
             episodeToPlay = selectItems.querySelector('div');
@@ -229,8 +231,8 @@ function updateEpisodeList(serverIndex) {
         // Nếu không có tập, vô hiệu hóa cả 2 nút
         const prevBtn = document.getElementById('prev-episode-btn');
         const nextBtn = document.getElementById('next-episode-btn');
-        if(prevBtn) prevBtn.disabled = true;
-        if(nextBtn) nextBtn.disabled = true;
+        if (prevBtn) prevBtn.disabled = true;
+        if (nextBtn) nextBtn.disabled = true;
     }
 }
 // === KHÔI PHỤC CODE: CÁC HÀM LIÊN QUAN ĐẾN PHIM LIÊN QUAN ===
@@ -243,11 +245,13 @@ async function loadRelatedMovies() {
     try {
         const res = await fetch(`${config.base}${config.paths.related()}`);
         const data = await res.json();
-        const relatedMovies = config.dataAccess.relatedItems(data);
 
-        if (relatedMovies && relatedMovies.length > 0) {
+        // Lưu dữ liệu vào biến toàn cục thay vì biến cục bộ
+        relatedMoviesData = config.dataAccess.relatedItems(data) || [];
+
+        if (relatedMoviesData && relatedMoviesData.length > 0) {
             carousel.innerHTML = '';
-            relatedMovies.forEach(movie => {
+            relatedMoviesData.forEach(movie => {
                 const card = createMovieCardForWatchPage(movie);
                 carousel.appendChild(card);
             });
@@ -280,7 +284,7 @@ function createMovieCardForWatchPage(movie) {
 
     const div = document.createElement('div');
     div.className = 'movie-item';
-    div.onclick = () => window.location.href = `watch.html?slug=${movie.slug}`;
+    div.onclick = () => openInfoPopup(movie.slug);
     div.innerHTML = `
         ${labelsHtml}
         <img src="${finalImageUrl}" alt="${movie.name}" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/160x240/333/ccc?text=No+Image';">
@@ -289,6 +293,7 @@ function createMovieCardForWatchPage(movie) {
     `;
     return div;
 }
+
 // === KẾT THÚC PHẦN KHÔI PHỤC CODE ===
 
 
@@ -462,7 +467,39 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+    // Hàm xáo trộn mảng (Fisher-Yates shuffle)
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
 
+    // Xử lý sự kiện click cho nút làm mới phim liên quan
+    const refreshBtn = document.getElementById('refresh-related-btn');
+    const relatedCarousel = document.getElementById('related-movies-carousel');
+    if (refreshBtn && relatedCarousel) {
+        refreshBtn.addEventListener('click', (e) => {
+            e.preventDefault(); // Ngăn trình duyệt chuyển trang
+
+            if (relatedMoviesData.length > 0) {
+                // Xáo trộn danh sách phim đã lưu
+                shuffleArray(relatedMoviesData);
+
+                // Xóa các phim hiện tại
+                relatedCarousel.innerHTML = '';
+
+                // Vẽ lại danh sách phim đã được xáo trộn
+                relatedMoviesData.forEach(movie => {
+                    const card = createMovieCardForWatchPage(movie);
+                    relatedCarousel.appendChild(card);
+                });
+
+                // Khởi tạo lại sự kiện cho carousel
+                attachCarouselEventsForRelated();
+            }
+        });
+    }
     document.getElementById('prev-episode-btn')?.addEventListener('click', playPreviousEpisode);
     document.getElementById('next-episode-btn')?.addEventListener('click', playNextEpisode);
 });
@@ -512,18 +549,37 @@ function playEpisode(m3u8Link, embedLink, serverIndex, episodeIndex) {
             setupMobileFullscreen(videoPlayer);
         }
 
+        // Tự động LƯU thời gian xem mỗi 5 giây
+        let lastTimeUpdate = 0;
+        videoPlayer.on('timeupdate', () => {
+            const currentTime = videoPlayer.currentTime();
+            if (Math.abs(currentTime - lastTimeUpdate) > 5) { // Chỉ lưu mỗi 5s
+                saveWatchProgress(currentMovieSlug, m3u8Link, serverIndex, episodeIndex, currentTime);
+                lastTimeUpdate = currentTime;
+            }
+        });
+
+        // Tự động XEM TIẾP từ thời điểm đã lưu
+        videoPlayer.one('loadedmetadata', () => {
+            const progress = getWatchProgress(currentMovieSlug);
+            if (progress && progress.episodes && progress.episodes[episodeIndex]) {
+                const savedTime = progress.episodes[episodeIndex].time;
+                if (savedTime > 0) {
+                    videoPlayer.currentTime(savedTime);
+                }
+            }
+        });
+
         videoPlayer.src({
             src: m3u8Link,
             type: 'application/x-mpegURL'
         });
         videoPlayer.play();
     }
-    
+
     saveWatchProgress(currentMovieSlug, m3u8Link || embedLink, serverIndex, episodeIndex);
     updateWatchHistory();
-    
-    // === FIX 2: GỌI HÀM SỬA LỖI NÚT CHUYỂN TẬP ===
-    // Hàm này được gọi ở đây để đảm bảo các nút được cập nhật mỗi khi có tập mới được phát.
+
     updateNavButtonStates();
 }
 
@@ -597,15 +653,31 @@ function updateWatchHistory() {
     localStorage.setItem('watchHistoryList', JSON.stringify(history));
 }
 
-function saveWatchProgress(movieSlug, episodeLink, serverIndex, episodeIndex) {
+function saveWatchProgress(movieSlug, episodeLink, serverIndex, episodeIndex, currentTime = 0) {
     if (!movieSlug) return;
     try {
         let watchProgress = JSON.parse(localStorage.getItem('watchProgress') || '{}');
-        watchProgress[movieSlug] = {
-            episodeLink: episodeLink,
-            serverIndex: serverIndex,
-            episodeIndex: episodeIndex
-        };
+
+        // Khởi tạo đối tượng cho phim nếu chưa có
+        if (!watchProgress[movieSlug]) {
+            watchProgress[movieSlug] = { episodes: {} };
+        }
+
+        // Cập nhật thông tin chung
+        watchProgress[movieSlug].serverIndex = serverIndex;
+        watchProgress[movieSlug].lastEpisodeIndex = episodeIndex;
+
+        // Cập nhật thời gian cho tập phim cụ thể
+        if (episodeIndex !== undefined) {
+             if (!watchProgress[movieSlug].episodes) {
+                watchProgress[movieSlug].episodes = {};
+            }
+            // Chỉ lưu thời gian nếu lớn hơn 5 giây để tránh ghi đè khi bắt đầu
+            if (currentTime > 5) {
+                watchProgress[movieSlug].episodes[episodeIndex] = { time: currentTime };
+            }
+        }
+
         localStorage.setItem('watchProgress', JSON.stringify(watchProgress));
     } catch (e) {
         console.error("Lỗi khi lưu tiến trình xem phim:", e);
@@ -706,4 +778,135 @@ function showCustomAlert(message, durationInMs, callback) {
         clearInterval(alertCountdownInterval);
         if (callback) callback();
     }, durationInMs);
+}
+async function getMovieDetails(slug) {
+    const currentSource = localStorage.getItem('apiSourceId') || 'ophim';
+    const cacheKey = `${currentSource}-${slug}`;
+    if (movieDetailsCache[cacheKey]) return movieDetailsCache[cacheKey];
+
+    const config = getCurrentApiConfig();
+    try {
+        const res = await fetch(`${config.base}${config.paths.details(slug)}`);
+        const data = await res.json();
+        let movie = config.dataAccess.movie(data);
+
+        if (movie) {
+            if ((config.id === 'ophim' || config.id === 'phimapi') && movie.movie) {
+                movie = movie.movie;
+            }
+
+            if (config.dataAccess.transform) {
+                movie = config.dataAccess.transform(movie);
+            }
+            movieDetailsCache[cacheKey] = movie;
+            return movie;
+        }
+        return null;
+    } catch (err) {
+        console.error(`Lỗi khi lấy chi tiết phim ${slug}:`, err);
+        return null;
+    }
+}
+
+async function openInfoPopup(slug) {
+    const popupOverlay = document.getElementById('popup-overlay');
+    const infoPopup = document.getElementById('movie-info-popup');
+
+    popupOverlay.style.display = 'block';
+    infoPopup.style.display = 'block';
+    infoPopup.innerHTML = 'Đang tải...';
+
+    const details = await getMovieDetails(slug);
+    if (details) {
+        // Kiểm tra xem phim này đã được yêu thích chưa
+        const favorites = JSON.parse(localStorage.getItem('favoriteMovies') || '[]');
+        const isFavorited = favorites.some(movie => movie.slug === slug);
+
+        const isTrailer = details.episode_current?.toLowerCase() === 'trailer';
+        const hasNoEpisodes = !details.episode_total || details.episode_total == 0;
+        const shouldDisableButton = isTrailer || hasNoEpisodes;
+        const watchButtonHtml = `<button class="popup-watch-btn" onclick="startWatching('${slug}')"><i class="fas fa-play"></i> Xem ngay</button>`;
+
+        let disabledButtonText;
+        if(isTrailer) {
+            disabledButtonText = 'Chỉ có Trailer';
+        } else {
+            disabledButtonText = 'Chưa có tập';
+        }
+
+        infoPopup.innerHTML = `
+            <button class="popup-close-btn" onclick="closeInfoPopup()">×</button>
+            <div class="info-title">${details.name || 'N/A'}</div>
+            <div class="info-item"><strong>Năm:</strong> ${details.year || 'N/A'}</div>
+            <div class="info-item"><strong>Quốc gia:</strong> ${details.country?.map(c => c.name).join(', ') || 'N/A'}</div>
+            <div class="info-item"><strong>Thể loại:</strong> ${details.category?.map(c => c.name).join(', ') || 'N/A'}</div>
+            <div class="info-item"><strong>Diễn viên:</strong> ${details.actor?.join(', ') || 'N/A'}</div>
+            <div class="info-item"><strong>Số tập:</strong> ${details.episode_total || 'N/A'}</div>
+            <div class="info-item info-description">${(details.content || '').replace(/<[^>]*>?/gm, '')}</div>
+            <div class="popup-actions">
+                <button class="popup-favorite-btn ${isFavorited ? 'active' : ''}" onclick="toggleFavorite('${slug}', this)">
+                    <i class="fas fa-heart"></i>
+                </button>
+                ${shouldDisableButton 
+                    ? `<button class="popup-watch-btn" disabled>${disabledButtonText}</button>` 
+                    : watchButtonHtml
+                }
+            </div>
+        `;
+        // Thêm sự kiện click cho overlay
+        popupOverlay.onclick = closeInfoPopup;
+
+    } else {
+        infoPopup.innerHTML = 'Lỗi tải thông tin phim. Vui lòng thử lại.';
+    }
+}
+async function toggleFavorite(slug, button) {
+    let favorites = JSON.parse(localStorage.getItem('favoriteMovies') || '[]');
+    const movieIndex = favorites.findIndex(movie => movie.slug === slug);
+
+    if (movieIndex > -1) {
+        // Đã có trong danh sách -> Bỏ thích
+        favorites.splice(movieIndex, 1);
+        button.classList.remove('active');
+    } else {
+        // Chưa có -> Thêm vào danh sách yêu thích
+        const movieDetails = await getMovieDetails(slug);
+        if (movieDetails) {
+            // Lấy thông tin nguồn hiện tại
+            const config = getCurrentApiConfig();
+            const sourceIndex = Object.keys(API_SOURCES).indexOf(config.id);
+
+            // Lưu thêm thông tin về tập và nguồn
+            const favoriteData = {
+                slug: movieDetails.slug,
+                name: movieDetails.name,
+                origin_name: movieDetails.origin_name,
+                thumb_url: movieDetails.thumb_url,
+                poster_url: movieDetails.poster_url,
+                year: movieDetails.year,
+                episode_current: movieDetails.episode_current || '', // <-- LƯU TẬP HIỆN TẠI
+                source: { // <-- LƯU THÔNG TIN NGUỒN
+                    id: config.id,
+                    name: config.name,
+                    number: sourceIndex + 1
+                }
+            };
+            favorites.unshift(favoriteData);
+            button.classList.add('active');
+        }
+    }
+    localStorage.setItem('favoriteMovies', JSON.stringify(favorites));
+}
+function startWatching(slug) { 
+    window.location.href = `watch.html?slug=${slug}`;
+}
+
+function closeInfoPopup() {
+    const popupOverlay = document.getElementById('popup-overlay');
+    const infoPopup = document.getElementById('movie-info-popup');
+    if(popupOverlay) popupOverlay.style.display = 'none';
+    if(infoPopup) {
+        infoPopup.style.display = 'none';
+        infoPopup.innerHTML = '';
+    }
 }

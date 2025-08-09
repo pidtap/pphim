@@ -3,19 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>P Movie</title>
+  <title>Phim Yêu Thích - P Movie</title>
   <link rel="shortcut icon" href="favion.png">
   <link rel="stylesheet" href="style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
-  <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
 </head>
 <body>
 
   <header>
     <div class="header-container">
-      <a href="#" id="logo-link"><img id="logo" src="logo.png" alt="Logo Phim Nhanh"></a>
-      
+      <a href="index.html" id="logo-link"><img id="logo" src="logo.png" alt="Logo Phim Nhanh"></a>
       <div class="search-group">
           <input type="search" id="search-input" placeholder="Tìm phim..." />
           <button id="search-btn"><i class="fas fa-search"></i></button>
@@ -23,24 +20,11 @@
     </div>
   </header>
 
-  <section class="hero-slider-container">
-  </section>
-
-  <main class="content-wrapper " id="page-content">
-    <section id="history-section" class="category-section" style="display: none;">
-        <div class="category-header">
-            <h2 class="category-title">Lịch Sử</h2>
-            <a href="#" class="see-more-link" onclick="event.preventDefault(); showHistoryPage()">
-                Xem thêm <i class="fas fa-chevron-right"></i>
-            </a>
-        </div>
-        <div class="movie-carousel"></div>
-        <button class="carousel-nav-btn prev"><i class="fas fa-chevron-left"></i></button>
-        <button class="carousel-nav-btn next"><i class="fas fa-chevron-right"></i></button>
-    </section>
+  <main class="content-wrapper" id="page-content">
+    <h2 id="section-title">Phim Yêu Thích Của Bạn</h2>
+    <div id="favorites-grid" class="movie-grid">
+      </div>
   </main>
-
-  <div id="pagination" class="pagination hidden"></div>
 
   <footer>
     <div class="footer-container">
@@ -94,42 +78,25 @@
   <div id="popup-overlay" style="display: none;"></div>
   <div id="movie-info-popup" style="display: none;"></div>
   
-  <div id="source-selector-overlay" class="popup-overlay" style="display: none;"></div>
-  <div id="source-selector-panel" style="display: none;">
-      <div class="source-selector-header">
-          <h3>Chọn Nguồn Phim</h3>
-          <button id="close-source-selector-btn" class="popup-close-btn">×</button>
-      </div>
-      <div id="source-selector-content" class="source-selector-content">
-      </div>
-  </div>
-
-    <div id="fab-container" class="fab-container collapsed">
-       <button id="options-fab" class="fab-btn fab-main" title="Tùy chọn">
-        <i class="fas fa-cog"></i>
-      </button>
-      <button id="source-toggle-btn" class="fab-btn fab-action" title="Đổi nguồn phim">
-        <span id="source-icon">1</span>
-      </button>
-      <button id="theme-toggle-btn" class="fab-btn fab-action" title="Chế độ Sáng/Tối">
-        <i class="fas fa-sun"></i>
-      </button>
-     
-  </div>
-  <div id="custom-alert-overlay" class="popup-overlay" style="display: none;"></div>
-  <div id="custom-alert-popup" style="display: none;">
-      <div class="custom-alert-header">
-          <h3 id="custom-alert-title">Thông báo</h3>
-      </div>
-      <div class="custom-alert-content">
-          <p id="custom-alert-message"></p>
-      </div>
-      <div class="custom-alert-actions">
-        <p id="custom-alert-countdown"></p> 
-          <button id="custom-alert-ok-btn">Đồng ý</button>
-      </div>
-  </div>
-  <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
   <script src="main.js"></script>
+  <script>
+    // Script dành riêng cho trang favorites.html
+    document.addEventListener('DOMContentLoaded', () => {
+        const favoritesGrid = document.getElementById('favorites-grid');
+        const favorites = JSON.parse(localStorage.getItem('favoriteMovies') || '[]');
+
+        if (favorites.length > 0) {
+            favorites.forEach(movie => {
+                const movieCard = createMovieCard(movie); // Dùng lại hàm từ main.js
+                favoritesGrid.appendChild(movieCard);
+            });
+        } else {
+            favoritesGrid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center;">Bạn chưa có phim yêu thích nào.</p>';
+        }
+
+        // Tắt loading skeletons nếu có
+        document.body.classList.remove('is-loading'); 
+    });
+  </script>
 </body>
 </html>

@@ -66,9 +66,9 @@
         <section id="related-movies-section" class="category-section" style="display: none;">
             <div class="category-header">
                 <h2 class="category-title">Có thể bạn cũng thích</h2>
-                <a href="index.html?category=phim-le" class="see-more-link">
-                    Xem thêm <i class="fas fa-chevron-right"></i>
-                </a>
+               <a href="#" id="refresh-related-btn" class="see-more-link" title="Tải lại ngẫu nhiên">
+    <i class="fas fa-sync-alt"></i>
+</a>
             </div>
             <div id="related-movies-carousel" class="movie-carousel"></div>
             <button class="carousel-nav-btn prev"><i class="fas fa-chevron-left"></i></button>
@@ -95,8 +95,7 @@
                   <h3>Liên Kết Nhanh</h3>
                   <ul>
                     <li><a href="#">Trang Chủ</a></li>
-                    <li><a href="#">Phim Lẻ</a></li>
-                    <li><a href="#">Phim Bộ</a></li>
+                    <li><a href="favorites.html">Phim Yêu Thích</a></li> <li><a href="#">Phim Lẻ</a></li>
                     <li><a href="#">Điều Khoản Dịch Vụ</a></li>
                     <li><a href="#">Chính Sách Bảo Mật</a></li>
                   </ul>
@@ -125,7 +124,8 @@
       <p>© 2025 P Movie. Design by: <a href="#" target="_blank">Mr. Nguyen Phat</a>. Mọi quyền được bảo lưu.</p>
     </div>
   </footer>
-
+    <div id="popup-overlay" style="display: none;"></div>
+  <div id="movie-info-popup" style="display: none;"></div>
     <div id="source-selector-overlay" class="popup-overlay" style="display: none;"></div>
     <div id="source-selector-panel" style="display: none;">
         <div class="source-selector-header">
