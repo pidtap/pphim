@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đang tải phim...</title>
+    <link rel="shortcut icon" href="https://i.ibb.co/YBh1y1J3/favion.png">
+    <link rel="stylesheet" href="style.css" /> <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <a href="index.html" id="logo-link"><img id="logo" src="https://i.ibb.co/TDrSLxWY/logo.png" alt="Logo Phim Nhanh"></a>
+            
+            <div class="search-group">
+                <input type="search" id="search-input" placeholder="Tìm phim..."/>
+                <button id="search-btn"><i class="fas fa-search"></i></button>
+            </div>
+            </div>
+    </header>
+
+    <main class="content-wrapper ">
+        <div id="watch-page-container">
+            <div class="player-wrapper" id="video-player-container" style="display: none;">
+                <video id="my-video-player" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="auto" playsinline>
+                </video>
+            </div>
+
+            <div class="movie-details-content">
+                <h1 id="movie-title">Đang tải...</h1>
+                <div id="movie-meta-info" class="video-top-meta"></div>
+            </div>
+
+            <div id="server-selection" class="episode-section" style="display: none;">
+                 <h2>Server:</h2>
+                 <div id="server-list" class="server-list"></div>
+            </div>
+
+            <div class="episode-section">
+                <h2>Tập:</h2>
+                <div id="episode-list-container">
+                    <div id="custom-select-container" class="custom-select">
+                        <div id="select-selected" class="select-selected"></div>
+                        <div id="select-items" class="select-items select-hide"></div>
+                    </div>
+                </div>
+                 <div id="episode-nav-buttons" class="episode-nav-buttons">
+                    <button id="prev-episode-btn" title="Tập trước"><i class="fas fa-chevron-left"></i> Tập trước</button>
+                    <button id="next-episode-btn" title="Tập sau">Tập sau <i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div id="episode-info" class="episode-info"></div>
+                <div id="auto-next-wrapper" class="auto-next-wrapper" style="display: none;">
+                    <button id="auto-next-btn" class="active" title="Bật/Tắt tự động chuyển tập">
+                        <i class="fas fa-toggle-on"></i>
+                    </button>
+                    <span>Tự động phát tập tiếp theo</span>
+                </div>
+                <div class="movie-description-watch">
+                    <h3>Nội dung phim</h3>
+                    <div id="movie-description-content"></div>
+                </div>
+            </div>
+        </div>
+
+        <section id="related-movies-section" class="category-section" style="display: none;">
+            <div class="category-header">
+                <h2 class="category-title">Có thể bạn cũng thích</h2>
+               <a href="#" id="refresh-related-btn" class="see-more-link" title="Tải lại ngẫu nhiên">
+    <i class="fas fa-sync-alt"></i>
+</a>
+            </div>
+            <div id="related-movies-carousel" class="movie-carousel"></div>
+            <button class="carousel-nav-btn prev"><i class="fas fa-chevron-left"></i></button>
+            <button class="carousel-nav-btn next"><i class="fas fa-chevron-right"></i></button>
+        </section>
+    </main>
+    
+      <footer>
+    <div class="footer-container">
+        <div class="footer-top">
+            <div class="footer-col about-us">
+                <img class="footer-logo" src="https://i.ibb.co/TDrSLxWY/logo.png" alt="Logo Phim Nhanh">
+                <p>P Movie là trang xem phim trực tuyến miễn phí.<br>
+                  Cập nhật các bộ phim mới nhất và nhanh nhất.</p>
+                <ul class="contact-info">
+                  <li><i class="fas fa-map-marker-alt"></i> Phú Hữu, Cần Thơ, Việt Nam</li>
+                  <li><i class="fas fa-envelope"></i> adbbypass@gmail.com</li>
+                  <li><i class="fas fa-phone"></i> (+84)3 8686 5151</li>
+                </ul>
+            </div>
+    
+            <div class="footer-col links-group">
+                <div class="quick-links">
+                  <h3>Liên Kết Nhanh</h3>
+                  <ul>
+                    <li><a href="#">Trang Chủ</a></li>
+                    <li><a href="favorites.html">Phim Yêu Thích</a></li> <li><a href="#">Phim Lẻ</a></li>
+                    <li><a href="#">Điều Khoản Dịch Vụ</a></li>
+                    <li><a href="#">Chính Sách Bảo Mật</a></li>
+                  </ul>
+                </div>
+                <div class="connect">
+                    <h3>Kết Nối</h3>
+                    <p>Theo dõi chúng tôi trên các mạng xã hội để không bỏ lỡ những bộ phim hay nhất.</p>
+                    <div class="social-icons">
+                      <a href="https://www.facebook.com/nvphat92/" target="_blank"  aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                      <a href="t.me/nguyenpha92" target="_blank" aria-label="Telegram"><i class="fab fa-telegram-plane"></i></a>
+                      <a href="https://www.youtube.com/@nguyenphat4424" target="_blank" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                      <a href="#" target="_blank" aria-label="Github"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-map-row">
+            <h3>Bản Đồ</h3>
+            <div class="map-container">
+              <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3930.796746018813!2d105.85623167484391!3d9.867412890231321!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31a05f7344bca7f1%3A0x5d0fbd6b34f72a86!2zTMOyIHRoYW4gOCBMw70!5e0!3m2!1svi!2sus!4v1751900296212!5m2!1svi!2sus" width="100%" height="200" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+        </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 P Movie. Design by: <a href="#" target="_blank">Mr. Nguyen Phat</a>. Mọi quyền được bảo lưu.</p>
+    </div>
+  </footer>
+    <div id="popup-overlay" style="display: none;"></div>
+  <div id="movie-info-popup" style="display: none;"></div>
+    <div id="source-selector-overlay" class="popup-overlay" style="display: none;"></div>
+    <div id="source-selector-panel" style="display: none;">
+        <div class="source-selector-header">
+            <h3>Chọn Nguồn Phim</h3>
+            <button id="close-source-selector-btn" class="popup-close-btn">×</button>
+        </div>
+        <div id="source-selector-content" class="source-selector-content">
+        </div>
+    </div>
+
+   <div id="fab-container" class="fab-container collapsed">
+     <button id="options-fab" class="fab-btn fab-main" title="Tùy chọn">
+        <i class="fas fa-cog"></i>
+      </button>
+      <button id="source-toggle-btn" class="fab-btn fab-action" title="Đổi nguồn phim">
+        <span id="source-icon">1</span>
+      </button>
+      <button id="theme-toggle-btn" class="fab-btn fab-action" title="Chế độ Sáng/Tối">
+        <i class="fas fa-sun"></i>
+      </button>
+     
+  </div>
+<div id="custom-alert-overlay" class="popup-overlay" style="display: none;"></div>
+  <div id="custom-alert-popup" style="display: none;">
+      <div class="custom-alert-header">
+          <h3 id="custom-alert-title">Thông báo</h3>
+      </div>
+      <div class="custom-alert-content">
+          <p id="custom-alert-message"></p>
+      </div>
+      <div class="custom-alert-actions">
+        <p id="custom-alert-countdown"></p> 
+          <button id="custom-alert-ok-btn">Đồng ý</button>
+      </div>
+  </div>
+    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+    <script src="shared.js"></script>
+  <script src="watch.js"></script>
+</body>
+</html>
