@@ -138,44 +138,80 @@ async function getMovieDetails(slug) {
  * @param {boolean} isFromHistory - Cờ để điều chỉnh giao diện cho mục lịch sử.
  * @returns {HTMLElement} Phần tử DOM của thẻ phim.
  */
-function createMovieCard(movie, isFromHistory = false) {
+/**
+ * Tạo một thẻ phim (movie card) với thiết kế chuyên nghiệp mới
+ * @param {object} movie - Đối tượng dữ liệu phim.
+ * @returns {HTMLElement} Phần tử DOM của thẻ phim.
+ */
+function createMovieCard(movie) {
     const config = getCurrentApiConfig();
-    let finalImageUrl = '';
-    const rawUrl = movie.thumb_url || movie.poster_url;
-
-    if (rawUrl) {
-        finalImageUrl = rawUrl.startsWith('http') ? rawUrl : config.img_base + rawUrl;
-    }
-
-    const episodeText = movie.episode_current || '';
-    const langText = movie.lang || movie.language || '';
-
-    let labelsHtml = '<div class="card-labels">';
-    if (episodeText) labelsHtml += `<div class="movie-label episode-label">${episodeText}</div>`;
-    if (!isFromHistory && langText) labelsHtml += `<div class="movie-label lang-label">${langText}</div>`;
-    if (movie.source && movie.source.number) {
-        labelsHtml += `<div class="movie-label source-label">Nguồn ${movie.source.number}</div>`;
-    }
-    labelsHtml += '</div>';
+    
+    const finalImageUrl = movie.thumb_url || movie.poster_url;
+    const imageUrl = finalImageUrl 
+        ? (finalImageUrl.startsWith('http') ? finalImageUrl : config.img_base + finalImageUrl) 
+        : 'https://placehold.co/240x360/1a1a1a/555?text=No+Image';
+        
+    const name = movie.name || 'Tên không xác định';
+    const year = movie.year || 'N/A';
+    const episode = movie.episode_current || 'N/A';
+    const country = movie.country?.[0]?.name || 'N/A';
+    const language = movie.lang || movie.language || 'N/A';
+    const slug = movie.slug;
 
     const div = document.createElement('div');
     div.className = 'movie-item';
-    div.onclick = () => {
-        if (movie.source && movie.source.id) {
-            localStorage.setItem('apiSourceId', movie.source.id);
-        }
-        openInfoPopup(movie.slug);
-    };
 
     div.innerHTML = `
-        ${labelsHtml}
-        <img src="${finalImageUrl}" alt="${movie.name}" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/160x240/333/ccc?text=No+Image';">
-        <h3>${movie.name}</h3>
-        <p>${movie.origin_name || ''}</p>
+        <div class="card-poster">
+            <img src="${imageUrl}" alt="${name}" loading="lazy">
+            
+            <div class="card-labels">
+                <span class="card-label label-country">${country}</span>
+                <span class="card-label label-language">${language}</span>
+            </div>
+
+            <div class="card-content-overlay">
+                <h3>${name}</h3>
+                <div class="card-meta">
+                    <span class="meta-year">${year}</span>
+                    <span class="meta-episode">${episode}</span>
+                </div>
+            </div>
+
+            <div class="card-interaction-overlay">
+                <i class="fas fa-play play-icon"></i>
+                <div class="card-actions">
+                    <button class="btn btn-watch-now"><i class="fas fa-play"></i> Xem Ngay</button>
+                    <button class="btn btn-info"><i class="fas fa-info-circle"></i> Thông Tin</button>
+                </div>
+            </div>
+        </div>
     `;
+
+    // Gắn sự kiện cho các nút bên trong
+    div.querySelector('.btn-watch-now').addEventListener('click', (e) => {
+        e.stopPropagation(); // Ngăn sự kiện lan ra thẻ cha
+        window.location.href = `watch.html?slug=${slug}`;
+    });
+
+    div.querySelector('.btn-info').addEventListener('click', (e) => {
+        e.stopPropagation(); // Ngăn sự kiện lan ra thẻ cha
+        window.location.href = `movie.html?slug=${slug}`;
+    });
+
+    // Gắn sự kiện cho toàn bộ thẻ phim
+    div.addEventListener('click', () => {
+        // Tìm và đóng thẻ đang active khác (nếu có)
+        const currentActive = document.querySelector('.movie-item.active');
+        if (currentActive && currentActive !== div) {
+            currentActive.classList.remove('active');
+        }
+        // Kích hoạt hoặc hủy kích hoạt thẻ hiện tại
+        div.classList.toggle('active');
+    });
+
     return div;
 }
-
 /**
  * Mở popup hiển thị chi tiết phim.
  * @param {string} slug - Slug của phim.
@@ -463,4 +499,10 @@ function initializeSharedUI(searchHandler) {
             document.getElementById('custom-alert-popup').style.display = 'none';
         });
     }
+    document.addEventListener('click', (e) => {
+    const activeCard = document.querySelector('.movie-item.active');
+    if (activeCard && !activeCard.contains(e.target)) {
+        activeCard.classList.remove('active');
+    }
+});
 }

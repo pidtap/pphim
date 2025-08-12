@@ -1,0 +1,255 @@
+/* === CSS CHO GIAO DIỆN HERO TOÀN MÀN HÌNH - PHIÊN BẢN CẢI TIẾN === */
+
+/* 1. Hero Section */
+.movie-hero {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    color: #fff;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden; /* Ngăn chặn nội dung tràn khi hiệu ứng scale */
+}
+.movie-hero::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 200px; /* Tăng chiều cao để hiệu ứng rõ hơn */
+    background: linear-gradient(to top, var(--background-body) 10%, transparent 100%);
+    z-index: 2; /* Đặt lớp này NẰM TRÊN lớp phủ đen */
+    pointer-events: none;
+}
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(17, 17, 17, 0.9); /* Tăng độ đậm của nền để bù lại */
+    /* backdrop-filter: blur(10px); -- Đã vô hiệu hóa */
+    /* -webkit-backdrop-filter: blur(10px); -- Đã vô hiệu hóa */
+    z-index: 1;
+}
+
+/* 2. Nội dung Hero */
+.hero-content {
+    position: relative;
+    z-index: 3; /* Đặt nội dung NẰM TRÊN CÙNG */
+    max-width: 1100px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 40px;
+    display: flex;
+    gap: 50px;
+    align-items: center;
+}
+.details-poster {
+    flex: 0 0 300px;
+    width: 300px;
+    aspect-ratio: 2 / 3;
+    border-radius: 12px;
+    overflow: hidden;
+    /* THAY ĐỔI Ở ĐÂY: Thêm viền và điều chỉnh bóng đổ */
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    background-color: var(--background-light);
+}
+
+.details-poster img {
+    width: 100%;
+    height: 100%; /* QUAN TRỌNG: Lấp đầy 100% chiều cao của container */
+    object-fit: cover; /* QUAN TRỌNG: Cắt ảnh để vừa khung hình mà không làm méo */
+    display: block;
+    transition: transform 0.3s ease-in-out;
+}
+
+.details-poster:hover img {
+    transform: scale(1.05);
+}
+
+.details-info {
+    flex: 1;
+}
+
+.details-info h1 {
+    color: #fff;
+    font-size: 4rem; /* Tiêu đề lớn hơn */
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-weight: 700; /* Chữ đậm hơn */
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.8);
+    line-height: 1.1;
+}
+
+.movie-detail-meta {
+    color: #eee;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 30px;
+    font-size: 1.1rem;
+}
+
+.movie-detail-meta span:not(:last-child)::after {
+    content: '•';
+    margin-left: 20px;
+    color: var(--color-primary);
+}
+
+.movie-detail-description {
+    color: #ddd;
+    font-size: 1.1rem; /* Giữ kích thước font dễ đọc */
+    line-height: 1.6; /* Giữ khoảng cách dòng hợp lý */
+    margin-bottom: 40px;
+    max-width: 75ch;
+    
+    /* --- Các thuộc tính giới hạn dòng --- */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 4; /* Giới hạn chính xác 4 dòng */
+    -webkit-box-orient: vertical;
+}
+/* === CSS CHO THÔNG TIN BỔ SUNG === */
+
+.movie-additional-info {
+    margin-top: 25px;
+    margin-bottom: 35px; /* Tăng khoảng cách tới nút Xem Phim */
+    padding-left: 5px;
+    border-left: 3px solid var(--color-primary); /* Tạo đường kẻ dọc để phân tách */
+}
+
+.movie-additional-info p {
+    margin: 10px 0 10px 15px; /* Căn lề cho các dòng thông tin */
+    font-size: 1rem;
+    color: #ccc;
+}
+
+.movie-additional-info strong {
+    color: #fff;
+    margin-right: 8px;
+    font-weight: 600; /* Chữ đậm vừa phải */
+}
+/* 3. Nút Xem Phim - THIẾT KẾ MỚI NỔI BẬT */
+.watch-now-btn {
+   background-color: var(--color-primary);
+   color: var(--text-dark) !important;
+   padding: 16px 35px;
+   font-size: 1.25rem;
+   font-weight: 700; /* Đậm hơn nữa */
+   border-radius: 10px; /* Bo tròn nhiều hơn */
+   box-shadow: 0 5px 20px rgba(var(--color-primary-rgb), 0.6); /* Hiệu ứng phát sáng */
+   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+   text-decoration: none; /* Thêm dòng này */
+}
+
+.watch-now-btn:hover {
+    transform: translateY(-3px); /* Nhấc lên rõ hơn */
+    box-shadow: 0 8px 25px rgba(var(--color-primary-rgb), 0.8); /* Phát sáng mạnh hơn */
+}
+
+.watch-now-btn i {
+    margin-right: 10px;
+}
+
+/* 4. Nút Yêu Thích */
+.favorite-btn {
+    background-color: rgba(255, 255, 255, 0.15); /* Nền sáng hơn chút */
+    color: #fff;
+    width: 56px;
+    height: 56px;
+    font-size: 1.5rem;
+    border-radius: 50%;
+    justify-content: center;
+    align-items: center;
+    display: inline-flex;
+    margin-left: 15px;
+    transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+.favorite-btn:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    transform: scale(1.1);
+}
+
+.favorite-btn.active {
+    background-color: #e50914;
+}
+
+/* --- 5. Responsive --- */
+@media (max-width: 768px) {
+    .movie-hero {
+        height: auto;
+        padding: 64px 0 40px; /* Giảm padding dưới */
+        align-items: flex-start;
+    }
+
+    .hero-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 25px; /* Giảm khoảng cách giữa poster và info */
+        padding: 0 15px; /* Giảm padding hai bên */
+    }
+
+    .details-poster {
+        width: 55%; /* Nhỏ hơn chút */
+        max-width: 180px; /* Giới hạn chiều rộng tối đa */
+        margin-bottom: 15px; /* Thêm khoảng cách dưới poster */
+    }
+
+    .details-info h1 {
+        font-size: 2.3rem; /* Tiêu đề nhỏ hơn */
+        margin-bottom: 10px;
+    }
+
+    .movie-detail-meta {
+        font-size: 0.9rem; /* Meta nhỏ hơn */
+        margin-bottom: 20px;
+        justify-content: center;
+        gap: 10px; /* Giảm khoảng cách giữa các meta */
+    }
+
+    .movie-detail-description {
+        font-size: 0.95rem; /* Mô tả nhỏ hơn */
+        margin-bottom: 25px;
+        /* text-align:start; */
+    }
+
+    .movie-detail-actions {
+        flex-direction: row; /* Hiển thị nút trên cùng một hàng */
+        align-items: center;
+        justify-content: center; /* Căn giữa */
+        gap: 10px; /* Khoảng cách giữa hai nút */
+    }
+
+    .watch-now-btn {
+        padding: 10px 20px; /* Nút xem nhỏ hơn */
+        font-size: 0.9rem;
+        border-radius: 8px;
+        box-shadow: 0 3px 10px rgba(var(--color-primary-rgb), 0.4);
+    }
+
+    .watch-now-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 12px rgba(var(--color-primary-rgb), 0.6);
+    }
+
+    .watch-now-btn i {
+        margin-right: 5px; /* Khoảng cách icon nhỏ hơn */
+    }
+
+    .favorite-btn {
+        width: 40px; /* Nút yêu thích nhỏ hơn */
+        height: 40px;
+        font-size: 1.1rem;
+    }
+    .movie-additional-info {
+        text-align: left;
+    }
+}

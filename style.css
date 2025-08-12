@@ -1,6 +1,7 @@
 :root {
     /* === Bảng màu chính (Giao diện tối - Dark Mode) === */
     --color-primary: #f90;
+     --color-primary-rgb: 255, 153, 0;
     --color-primary-hover: #ffc400;
     --color-secondary: #00bfff;
     --color-special: #6a0dad; /* Màu cho label history */
@@ -247,19 +248,7 @@ img#logo {
         grid-template-columns: repeat(7, 1fr);
     }
 }
-.movie-item {
-    background: var(--background-content);
-    border-radius: 5px;
-    cursor: pointer;
-    border: 4px solid transparent;
-    transition: border 0.2s, background-color 0.3s, box-shadow 0.3s;
-    position: relative;
-    overflow: hidden;
-}
 
-.movie-item:hover {
-    border-color: var(--border-accent);
-}
 
 .card-labels {
     position: absolute;
@@ -281,9 +270,6 @@ img#logo {
     text-align: center;
 }
 
-.episode-label {
-    background-color: var(--color-primary);
-}
 
 .lang-label {
     background-color: var(--color-secondary);
@@ -1734,4 +1720,248 @@ body.light-mode .slide-text-wrapper .meta {
 .skeleton-carousel .skeleton-card {
     flex: 0 0 160px;
     height: 240px;
+}
+/* === CSS CẢI TIẾN CHO THẺ PHIM VÀ NÚT XEM THÊM === */
+
+
+
+.movie-card-info h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-accent);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.movie-card-info p {
+    margin: 4px 0 0 0;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 2. Container mới cho poster phim */
+
+.movie-poster-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+/* === CSS CHO MOVIE ITEM - THIẾT KẾ CHUYÊN NGHIỆP MỚI === */
+
+.movie-item {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden; /* Quan trọng để bo góc các lớp con */
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    aspect-ratio: 2 / 3; /* Luôn giữ tỷ lệ đứng */
+    background-color: var(--background-content);
+}
+
+.movie-item .card-poster {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.movie-item .card-poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+/* --- Các lớp phủ --- */
+.card-labels {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    z-index: 3;
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none; /* Cho phép click xuyên qua */
+}
+
+.card-label {
+    background-color: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.card-content-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 40px 15px 15px;
+    color: #fff;
+    z-index: 2;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 20%, transparent 100%);
+    pointer-events: none;
+}
+
+.card-content-overlay h3 {
+    margin: 0 0 5px 0;
+    font-size: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.card-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #ccc;
+}
+
+/* --- Lớp phủ tương tác (Hover & Click) --- */
+.card-interaction-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0);
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: background-color 0.3s ease, opacity 0.3s ease;
+}
+
+.play-icon {
+    font-size: 3rem;
+    color: #fff;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none; /* THÊM DÒNG NÀY */
+}
+
+.card-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: absolute;
+}
+
+.card-actions .btn {
+    background: rgba(255, 255, 255, 0.9);
+    color: #000;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transform: translateY(10px);
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    white-space: nowrap;
+}
+.card-actions .btn:hover {
+    background: #fff;
+}
+.card-actions .btn i {
+    margin-right: 8px;
+}
+
+
+/* === HIỆU ỨNG KHI TƯƠNG TÁC === */
+
+/* Khi Hover */
+.movie-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.movie-item:hover .card-poster img {
+    transform: scale(1.1);
+}
+
+.movie-item:hover .card-interaction-overlay {
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.movie-item:hover .play-icon {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Khi được Click (active) */
+.movie-item.active .card-interaction-overlay {
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.movie-item.active .play-icon {
+    opacity: 0; /* Ẩn icon play */
+    transform: scale(0.8);
+}
+
+.movie-item.active .card-actions .btn {
+    opacity: 1; /* Hiện các nút bấm */
+    transform: translateY(0);
+}
+
+/* 4. Nút "Xem thêm" với định dạng mới */
+.see-more-link {
+    color: var(--text-subtle);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: 1px solid var(--border-primary);
+    padding: 6px 14px;
+    border-radius: 20px; /* Bo tròn để tạo thành hình viên thuốc */
+    white-space: nowrap;
+}
+
+.see-more-link:hover {
+    color: var(--text-dark);
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    transform: scale(1.05);
+}
+
+.see-more-link i {
+    margin-left: 5px;
+}
+/* === HIỆU ỨNG BĂNG CHUYỀN LIỀN MẠCH === */
+
+@keyframes marquee-scroll {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); } /* Trượt đúng 1 nửa để tạo vòng lặp */
+}
+
+.movie-carousel.autoscroll {
+    display: flex;
+    width: max-content;
+    animation: marquee-scroll 180s linear infinite; /* Tốc độ mặc định chậm */
+}
+
+/* Dừng animation khi người dùng di chuột vào */
+.category-section:hover .movie-carousel.autoscroll {
+    animation-play-state: paused;
+}
+
+/* Tạo hiệu ứng không đồng đều */
+.category-section:nth-child(odd) .movie-carousel.autoscroll {
+    animation-duration: 200s; /* Tốc độ nhanh hơn */
+}
+
+.category-section:nth-child(3n) .movie-carousel.autoscroll {
+    animation-direction: reverse; /* Trượt ngược lại */
 }
