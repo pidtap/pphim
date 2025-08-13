@@ -92,6 +92,7 @@ function renderServerButtons() {
 
 
 /** Cập nhật danh sách tập khi đổi server */
+// Thay thế toàn bộ hàm updateEpisodeList trong watch.js bằng mã này:
 function updateEpisodeList(serverIndex) {
     const serverData = fullEpisodeData ? fullEpisodeData[serverIndex] : null;
     currentEpisodeList = (serverData?.items || serverData?.server_data) ?? [];
@@ -109,7 +110,12 @@ function updateEpisodeList(serverIndex) {
             const optionDiv = document.createElement('div');
             optionDiv.textContent = ep.name;
             optionDiv.dataset.m3u8 = ep.m3u8 || ep.link_m3u8;
-            optionDiv.dataset.embed = ep.embed;
+            
+            // === SỬA LỖI TẠI ĐÂY ===
+            // Tìm link embed ở nhiều thuộc tính có thể có (embed, link_embed)
+            optionDiv.dataset.embed = ep.embed || ep.link_embed;
+            // ========================
+
             optionDiv.dataset.episodeIndex = index;
 
             optionDiv.addEventListener('click', function() {
@@ -117,12 +123,10 @@ function updateEpisodeList(serverIndex) {
                 
                 selectSelected.textContent = this.textContent;
                 
-                // Kích hoạt lại tất cả các tập và xóa style cũ
                 selectItems.querySelectorAll('div').forEach(item => {
                     item.classList.remove('same-as-selected', 'disabled-episode');
                 });
                 
-                // Vô hiệu hóa tập vừa được chọn
                 this.classList.add('same-as-selected', 'disabled-episode');
                 
                 selectItems.classList.add('select-hide');
@@ -357,9 +361,15 @@ function handleSearchOnWatchPage(query) {
 }
 
 // --- 3. KHỞI CHẠY ---
+// Thay thế khối DOMContentLoaded trong watch.js bằng mã này:
 document.addEventListener('DOMContentLoaded', () => {
-    // Khởi tạo các UI dùng chung và truyền vào hàm xử lý tìm kiếm của trang xem phim
-    initializeSharedUI(handleSearchOnWatchPage);
+    // Hàm xử lý tìm kiếm mới: Luôn điều hướng đến trang search.html
+    const universalSearchHandler = (query) => {
+        if (query) {
+            window.location.href = `search.html?q=${encodeURIComponent(query)}`;
+        }
+    };
+    initializeSharedUI(universalSearchHandler);
 
     // Tạo sẵn iframe player
     const playerWrapper = document.getElementById('video-player-container');

@@ -401,19 +401,17 @@ function initializeAutoScrollCarousels() {
 }
 // --- 3. KHỞI CHẠY ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Khởi tạo các UI dùng chung và truyền vào hàm xử lý tìm kiếm của trang chủ
-    initializeSharedUI(handleSearch);
-    
-    const urlParams = new URLSearchParams(window.location.search);
-    const searchQueryFromUrl = urlParams.get('search_query');
+    // Hàm xử lý tìm kiếm mới: Luôn điều hướng đến trang search.html
+    const universalSearchHandler = (query) => {
+        if (query) {
+            window.location.href = `search.html?q=${encodeURIComponent(query)}`;
+        }
+    };
+    initializeSharedUI(universalSearchHandler);
 
-    if (searchQueryFromUrl) {
-        document.getElementById('search-input').value = decodeURIComponent(searchQueryFromUrl);
-        handleSearch(decodeURIComponent(searchQueryFromUrl));
-    } else {
-        initializeHomepageSlider();
-        renderHomepage();
-    }
+    // Trang chủ sẽ luôn hiển thị giao diện mặc định, không xử lý tìm kiếm tại đây nữa
+    initializeHomepageSlider();
+    renderHomepage();
     
     document.getElementById('logo-link').addEventListener('click', (e) => {
         e.preventDefault();

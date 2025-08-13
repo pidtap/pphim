@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kết quả tìm kiếm - P Movie</title>
+  <link rel="shortcut icon" href="https://i.ibb.co/YBh1y1J3/favion.png">
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+</head>
+<body>
+
+  <header>
+    <div class="header-container">
+      <a href="index.html" id="logo-link"><img id="logo" src="https://i.ibb.co/TDrSLxWY/logo.png" alt="Logo Phim Nhanh"></a>
+      <div class="search-group">
+          <input type="search" id="search-input" placeholder="Tìm phim..." />
+          <button id="search-btn"><i class="fas fa-search"></i></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="content-wrapper" id="page-content">
+    <h2 id="section-title">Đang tìm kiếm...</h2>
+    <div id="search-results-grid" class="movie-grid">
+      </div>
+  </main>
+
+  <div id="pagination" class="pagination"></div>
+
+  <footer>
+    <div class="footer-container">
+        <div class="footer-top">
+            <div class="footer-col about-us">
+                <img class="footer-logo" src="https://i.ibb.co/TDrSLxWY/logo.png" alt="Logo Phim Nhanh">
+                <p>P Movie là trang xem phim trực tuyến miễn phí.<br>
+                  Cập nhật các bộ phim mới nhất và nhanh nhất.</p>
+                <ul class="contact-info">
+                  <li><i class="fas fa-map-marker-alt"></i> Giá Rai, Cà Mau, Việt Nam</li>
+                  <li><i class="fas fa-envelope"></i> adbbypass@gmail.com</li>
+                  <li><i class="fas fa-phone"></i> (+84)3 5151 8686</li>
+                </ul>
+            </div>
+            <div class="footer-col links-group">
+                <div class="quick-links">
+                  <h3>Liên Kết Nhanh</h3>
+                  <ul>
+                    <li><a href="index.html">Trang Chủ</a></li>
+                    <li><a href="favorites.html">Phim Yêu Thích</a></li>
+                  </ul>
+                </div>
+                <div class="connect">
+                    <h3>Kết Nối</h3>
+                    <p>Theo dõi chúng tôi trên các mạng xã hội.</p>
+                    <div class="social-icons">
+                      <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                      <a href="#" aria-label="Telegram"><i class="fab fa-telegram-plane"></i></a>
+                      <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+          <p>© 2025 P Movie. Design by: Mr. Nguyen Phat. Mọi quyền được bảo lưu.</p>
+        </div>
+    </div>
+  </footer>
+
+  <div id="source-selector-overlay" class="popup-overlay" style="display: none;"></div>
+  <div id="source-selector-panel" style="display: none;">
+      <div class="source-selector-header">
+          <h3>Chọn Nguồn Phim</h3>
+          <button id="close-source-selector-btn" class="popup-close-btn">×</button>
+      </div>
+      <div id="source-selector-content" class="source-selector-content"></div>
+  </div>
+  <div id="fab-container" class="fab-container collapsed">
+      <button id="options-fab" class="fab-btn fab-main" title="Tùy chọn"><i class="fas fa-cog"></i></button>
+      <button id="source-toggle-btn" class="fab-btn fab-action" title="Đổi nguồn phim"><span id="source-icon">1</span></button>
+      <button id="theme-toggle-btn" class="fab-btn fab-action" title="Chế độ Sáng/Tối"><i class="fas fa-sun"></i></button>
+  </div>
+  <div id="custom-confirm-overlay" class="popup-overlay" style="display: none;"></div>
+    <div id="custom-confirm-popup" style="display: none;">
+    <div class="custom-alert-header"><h3 id="custom-confirm-title">Xác nhận</h3></div>
+    <div class="custom-alert-content"><p id="custom-confirm-message"></p></div>
+    <div class="custom-alert-actions" style="justify-content: flex-end; gap: 10px;">
+        <button id="custom-confirm-cancel-btn" class="popup-btn-secondary">Hủy</button>
+        <button id="custom-confirm-ok-btn" class="popup-btn-primary">Xác nhận</button>
+    </div>
+  </div>
+  
+  <script src="shared.js"></script>
+  <script src="search.js"></script>
+  <div id="custom-alert-overlay" class="popup-overlay" style="display: none;"></div>
+  <div id="custom-alert-popup" style="display: none;">
+      <div class="custom-alert-header">
+          <h3 id="custom-alert-title">Thông báo</h3>
+      </div>
+      <div class="custom-alert-content">
+          <p id="custom-alert-message"></p>
+      </div>
+      <div class="custom-alert-actions">
+        <p id="custom-alert-countdown"></p> 
+          <button id="custom-alert-ok-btn">Đồng ý</button>
+      </div>
+  </div>
+</body>
+</html>

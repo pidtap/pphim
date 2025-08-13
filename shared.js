@@ -182,10 +182,13 @@ function createMovieCard(movie, isFromHistory = false) {
     const movieSourceId = movie.source?.id || getCurrentApiConfig().id;
     const config = getCurrentApiConfig();
 
-    const finalImageUrl = movie.thumb_url || movie.poster_url;
+    // === SỬA LỖI: TÌM ẢNH Ở NHIỀU NƠI HƠN ===
+    // Thêm 'movie.poster' và 'movie.img' làm các lựa chọn dự phòng
+    const finalImageUrl = movie.thumb_url || movie.poster_url || movie.poster || movie.img;
     const imageUrl = finalImageUrl 
         ? (finalImageUrl.startsWith('http') ? finalImageUrl : config.img_base + finalImageUrl) 
         : 'https://placehold.co/240x360/1a1a1a/555?text=No+Image';
+    // ==========================================
         
     const name = movie.name || 'Tên không xác định';
     const year = movie.year || 'NA';
@@ -206,13 +209,10 @@ function createMovieCard(movie, isFromHistory = false) {
                <i class="${isFavorited ? 'fas fa-heart' : 'far fa-heart'}"></i>
            </button>`;
 
-    // === LOGIC MỚI: TẠO HTML CHO CÁC NHÃN VÀ THÔNG TIN PHỤ DỰA TRÊN NGUỒN ===
-    let labelsHtml = `<span class="card-label label-language">${language}</span>`; // Nhãn ngôn ngữ luôn hiển thị
+    let labelsHtml = `<span class="card-label label-language">${language}</span>`;
     let metaHtml = '';
 
-    // Nếu nguồn không phải là 'nguonc', thêm nhãn quốc gia và thông tin năm/tập
     if (movieSourceId !== 'nguonc') {
-        // Chỉ thêm nhãn quốc gia nếu có dữ liệu
         if (country !== 'N/A') {
             labelsHtml = `<span class="card-label label-country">${country}</span>` + labelsHtml;
         }
@@ -221,7 +221,6 @@ function createMovieCard(movie, isFromHistory = false) {
             <span class="meta-episode">${episode}</span>
         `;
     }
-    // =========================================================================
 
     div.innerHTML = `
         ${deleteButtonHtml}
@@ -460,58 +459,63 @@ function showCustomConfirm(message, onConfirm) {
  * @param {function} searchHandler - Hàm xử lý khi người dùng tìm kiếm.
  */
 function initializeSharedUI(searchHandler) {
-    // FAB Menu
+    // === PHẦN LOGIC BỊ THIẾU SẼ ĐƯỢC PHỤC HỒI Ở ĐÂY ===
+
+    // 1. FAB Menu (Nút Tùy chọn nổi)
     const fabContainer = document.getElementById('fab-container');
     if (fabContainer) {
         fabContainer.addEventListener('click', (e) => {
             if (e.target.closest('#options-fab')) {
-                fabContainer.classList.toggle('open');
+                 fabContainer.classList.toggle('open');
             }
         });
     }
 
-    // Nút đổi theme
+    // 2. Nút đổi theme (Sáng/Tối)
     const themeToggleBtn = document.getElementById('theme-toggle-btn'), body = document.body;
     if (themeToggleBtn && body) {
         const icon = themeToggleBtn.querySelector('i');
         const updateThemeIcon = () => icon.className = `fas fa-${body.classList.contains('light-mode') ? 'moon' : 'sun'}`;
-        if (localStorage.getItem('theme') === 'light') body.classList.add('light-mode');
+        
+        if (localStorage.getItem('theme') === 'light') {
+            body.classList.add('light-mode');
+        }
         updateThemeIcon();
+
         themeToggleBtn.addEventListener('click', () => {
             body.classList.toggle('light-mode');
             localStorage.setItem('theme', body.classList.contains('light-mode') ? 'light' : 'dark');
             updateThemeIcon();
         });
     }
-
-    // Panel chọn nguồn phim
+    
+    // 3. Panel chọn nguồn phim
     const sourceToggleBtn = document.getElementById('source-toggle-btn');
     const sourceSelectorOverlay = document.getElementById('source-selector-overlay');
     const sourceSelectorPanel = document.getElementById('source-selector-panel');
     const closeBtn = document.getElementById('close-source-selector-btn');
-    if (sourceToggleBtn && sourceSelectorOverlay && sourceSelectorPanel && closeBtn) {
+    if(sourceToggleBtn && sourceSelectorOverlay && sourceSelectorPanel && closeBtn) {
         const openPanel = () => {
             const contentDiv = document.getElementById('source-selector-content');
             contentDiv.innerHTML = '';
             const currentSourceId = getCurrentApiConfig().id;
-
+    
             Object.values(API_SOURCES).forEach((source, index) => {
                 const button = document.createElement('button');
                 button.className = 'source-btn';
                 button.textContent = `${index + 1}. ${source.name}`;
                 if (source.id === currentSourceId) button.disabled = true;
-
+    
                 button.addEventListener('click', () => {
                     localStorage.setItem('apiSourceId', source.id);
                     closePanel();
                     showCustomAlert(`Đã đổi sang ${source.name}.`, 2000, () => {
-                        // Luôn chuyển về trang chủ khi đổi nguồn để tránh lỗi
                         window.location.href = 'index.html';
                     });
                 });
                 contentDiv.appendChild(button);
             });
-
+    
             sourceSelectorOverlay.style.display = 'block';
             sourceSelectorPanel.style.display = 'block';
         };
@@ -525,61 +529,139 @@ function initializeSharedUI(searchHandler) {
     }
     const updateSourceIcon = () => {
         const sourceIcon = document.getElementById('source-icon');
-        const sourceKeys = Object.keys(API_SOURCES);
-        const currentIndex = sourceKeys.indexOf(getCurrentApiConfig().id);
-        if (sourceIcon) sourceIcon.textContent = currentIndex + 1;
+        if (sourceIcon) {
+            const sourceKeys = Object.keys(API_SOURCES);
+            const currentIndex = sourceKeys.indexOf(getCurrentApiConfig().id);
+            sourceIcon.textContent = currentIndex + 1;
+        }
     };
     updateSourceIcon();
 
-
-    // Header cuộn
+    // 4. Header cuộn
     const headerEl = document.querySelector('header');
     if (headerEl) {
         window.addEventListener('scroll', () => {
             headerEl.classList.toggle('scrolled', window.scrollY > 50);
         }, { passive: true });
     }
-
-    // Thanh tìm kiếm
+    
+    // === PHẦN LOGIC CHO THANH TÌM KIẾM NÂNG CAO (GIỮ NGUYÊN) ===
     const searchInput = document.getElementById('search-input');
     const searchGroup = document.querySelector('.search-group');
     const searchBtn = document.getElementById('search-btn');
     const headerContainer = document.querySelector('.header-container');
+
     if (searchGroup && searchInput && searchBtn && headerContainer) {
+        const suggestionsContainer = document.createElement('div');
+        suggestionsContainer.className = 'search-suggestions';
+        searchGroup.appendChild(suggestionsContainer);
+
+        let debounceTimeout;
+        const debounce = (func, delay) => {
+            return function(...args) {
+                clearTimeout(debounceTimeout);
+                debounceTimeout = setTimeout(() => func.apply(this, args), delay);
+            };
+        };
+
+        const fetchAndRenderSuggestions = async (query) => {
+            if (!query) {
+                suggestionsContainer.classList.remove('visible');
+                return;
+            }
+
+            const config = getCurrentApiConfig();
+            const url = `${config.base}${config.paths.search(query, 1)}`;
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                let movies = config.dataAccess.items(data) || [];
+                
+                // === DÒNG MÃ QUAN TRỌNG ĐƯỢC THÊM VÀO ĐÂY ===
+                // Áp dụng transform để chuẩn hóa dữ liệu, giúp lấy đúng thông tin ảnh, năm...
+                if (config.dataAccess.transform) {
+                    movies = movies.map(movie => config.dataAccess.transform(movie));
+                }
+                // ============================================
+                
+                suggestionsContainer.innerHTML = '';
+                if (movies.length > 0) {
+                    // Chỉ lấy 5 phim đầu tiên để làm gợi ý
+                    movies.slice(0, 5).forEach(movie => {
+                        const finalImageUrl = movie.thumb_url || movie.poster_url;
+                        const imageUrl = finalImageUrl 
+                            ? (finalImageUrl.startsWith('http') ? finalImageUrl : config.img_base + finalImageUrl) 
+                            : 'https://placehold.co/40x60/1a1a1a/555?text=...';
+
+                        const item = document.createElement('a');
+                        item.href = `movie.html?slug=${movie.slug}`;
+                        item.className = 'suggestion-item';
+                        item.innerHTML = `
+                            <img src="${imageUrl}" alt="${movie.name}" loading="lazy">
+                            <div class="suggestion-info">
+                                <h4>${movie.name}</h4>
+                                <p>${movie.origin_name || ''} (${movie.year || 'N/A'})</p>
+                            </div>
+                        `;
+                        suggestionsContainer.appendChild(item);
+                    });
+                    suggestionsContainer.classList.add('visible');
+                } else {
+                    suggestionsContainer.classList.remove('visible');
+                }
+            } catch (error) {
+                console.error("Lỗi khi tải gợi ý tìm kiếm:", error);
+                suggestionsContainer.classList.remove('visible');
+            }
+        };
+
+        const debouncedFetch = debounce(fetchAndRenderSuggestions, 300);
+
+        searchInput.addEventListener('input', () => {
+            debouncedFetch(searchInput.value.trim());
+        });
+
+        const performSearch = () => {
+            if (searchInput.value.trim() !== '' && typeof searchHandler === 'function') {
+                suggestionsContainer.classList.remove('visible');
+                searchHandler(searchInput.value.trim());
+            }
+        };
+
         searchBtn.addEventListener('click', (e) => {
             if (!searchGroup.classList.contains('active')) {
                 e.preventDefault();
                 searchGroup.classList.add('active');
                 headerContainer.classList.add('search-active');
                 searchInput.focus();
-            } else if (searchInput.value.trim() !== '' && typeof searchHandler === 'function') {
-                searchHandler(searchInput.value.trim());
             } else {
-                searchGroup.classList.remove('active');
-                headerContainer.classList.remove('search-active');
+                performSearch();
             }
         });
 
         searchInput.addEventListener('keyup', (e) => {
-            if (e.key === 'Enter' && typeof searchHandler === 'function') {
-                searchHandler(searchInput.value.trim());
+            if (e.key === 'Enter') {
+                performSearch();
             }
         });
 
         document.addEventListener('click', (e) => {
-            if (!searchGroup.contains(e.target) && searchInput.value === '') {
-                searchGroup.classList.remove('active');
-                headerContainer.classList.remove('search-active');
+            if (!searchGroup.contains(e.target)) {
+                suggestionsContainer.classList.remove('visible');
+                if (searchInput.value === '') {
+                    searchGroup.classList.remove('active');
+                    headerContainer.classList.remove('search-active');
+                }
             }
         });
     }
 
-    // Popup và Overlay
+    // === CÁC PHẦN CUỐI CÙNG (GIỮ NGUYÊN) ===
     const popupOverlay = document.getElementById('popup-overlay');
-    if (popupOverlay) popupOverlay.addEventListener('click', closeInfoPopup);
+    if(popupOverlay) popupOverlay.addEventListener('click', closeInfoPopup);
 
     const alertOkBtn = document.getElementById('custom-alert-ok-btn');
-    if (alertOkBtn) {
+    if(alertOkBtn) {
         alertOkBtn.addEventListener('click', () => {
             document.getElementById('custom-alert-overlay').style.display = 'none';
             document.getElementById('custom-alert-popup').style.display = 'none';

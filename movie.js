@@ -20,16 +20,18 @@ function renderHybridHero(details) {
     const heroSection = document.getElementById('movie-hero-section');
     const config = getCurrentApiConfig();
 
-    const backgroundUrl = details.backdrop_url || details.poster_url;
+    // SỬA LỖI: Kiểm tra thêm các tên thuộc tính ảnh có thể có
+    const backgroundUrl = details.backdrop_url || details.backdrop || details.poster_url || details.poster;
     if (backgroundUrl) {
         const finalBgUrl = backgroundUrl.startsWith('http') ? backgroundUrl : config.img_base + backgroundUrl;
         heroSection.style.backgroundImage = `url('${finalBgUrl}')`;
     }
 
-    const posterUrl = details.poster_url || details.thumb_url;
+    const posterUrl = details.poster_url || details.thumb_url || details.poster;
     const finalPosterUrl = posterUrl
         ? (posterUrl.startsWith('http') ? posterUrl : config.img_base + posterUrl)
         : 'https://placehold.co/300x450/1a1a1a/555?text=No+Image';
+    // --- KẾT THÚC SỬA LỖI ---
 
     const favorites = JSON.parse(localStorage.getItem('favoriteMovies') || '[]');
     const isFavorited = favorites.some(movie => movie.slug === details.slug);
@@ -55,9 +57,8 @@ function renderHybridHero(details) {
                     <p><strong>Tên gốc:</strong> ${originName}</p>
                     <p><strong>Ngôn ngữ:</strong> ${language}</p>
                     <p><strong>Diễn viên:</strong> ${actorsText}</p>
-                    <p class="movie-detail-description"><strong>Mô tả:</strong>${(details.content || 'Chưa có mô tả.').replace(/<[^>]*>?/gm, '')}</p>
+                    <p class="movie-detail-description">${(details.content || 'Chưa có mô tả.').replace(/<[^>]*>?/gm, '')}</p>
                 </div>
-                
                 <div class="movie-detail-actions">
                     <a href="watch.html?slug=${details.slug}" class="action-btn watch-now-btn">
                         <i class="fas fa-play"></i> Xem Phim
@@ -113,9 +114,13 @@ function attachCarouselEventsForSection(section) {
 
 // --- HÀM KHỞI CHẠY CHÍNH ---
 document.addEventListener('DOMContentLoaded', async () => {
-    initializeSharedUI((query) => {
-        if (query) window.location.href = `index.html?search_query=${encodeURIComponent(query)}`;
-    });
+    // Hàm xử lý tìm kiếm mới: Luôn điều hướng đến trang search.html
+    const universalSearchHandler = (query) => {
+        if (query) {
+            window.location.href = `search.html?q=${encodeURIComponent(query)}`;
+        }
+    };
+    initializeSharedUI(universalSearchHandler);
 
     const urlParams = new URLSearchParams(window.location.search);
     const movieSlug = urlParams.get('slug');

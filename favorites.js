@@ -1,9 +1,13 @@
 // favorites.js
+// Thay thế khối DOMContentLoaded trong favorites.js bằng mã này:
 document.addEventListener('DOMContentLoaded', () => {
-    // Khởi tạo các UI dùng chung và truyền vào hàm xử lý tìm kiếm
-    initializeSharedUI((query) => {
-        if (query) window.location.href = `index.html?search_query=${encodeURIComponent(query)}`;
-    });
+    // Hàm xử lý tìm kiếm mới: Luôn điều hướng đến trang search.html
+    const universalSearchHandler = (query) => {
+        if (query) {
+            window.location.href = `search.html?q=${encodeURIComponent(query)}`;
+        }
+    };
+    initializeSharedUI(universalSearchHandler);
 
     const favoritesGrid = document.getElementById('favorites-grid');
     const favorites = JSON.parse(localStorage.getItem('favoriteMovies') || '[]');
@@ -12,7 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (favorites.length > 0) {
             favoritesGrid.innerHTML = ''; // Xóa nội dung chờ (nếu có)
             favorites.forEach(movie => {
-                // Dùng hàm createMovieCard từ shared.js
                 const movieCard = createMovieCard(movie);
                 favoritesGrid.appendChild(movieCard);
             });

@@ -1220,13 +1220,13 @@ body.light-mode .filter-actions {
     border: 1px solid transparent;
     border-radius: 20px;
     width: 40px;
-    overflow: hidden;
+    /* overflow: hidden; */
     transition: width 0.4s ease-in-out, background-color 0.4s ease-in-out, border-color 0.4s ease-in-out;
     margin-left: auto;
 }
 
 .search-group.active {
-    width: 250px;
+    width: 320px;
     background-color: var(--background-input-active);
     border-color: var(--border-input-active);
 }
@@ -2026,4 +2026,70 @@ body.light-mode .slide-text-wrapper .meta {
     font-weight: bold;
     border-radius: 5px;
     cursor: pointer;
+}
+/* === SEARCH SUGGESTIONS (GỢI Ý TÌM KIẾM) === */
+
+.search-group {
+    /* Thêm thuộc tính này để định vị box gợi ý */
+    position: relative;
+}
+
+.search-suggestions {
+    position: absolute;
+    top: 105%; /* Hiển thị ngay bên dưới thanh tìm kiếm */
+    left: 0;
+    right: 0;
+    background-color: var(--background-light);
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+    z-index: 1100; /* Phải cao hơn các thành phần khác */
+    max-height: 450px;
+    overflow-y: auto;
+    box-shadow: 0 4px 15px var(--shadow-color);
+    display: none; /* Mặc định ẩn */
+}
+
+.search-suggestions.visible {
+    display: block; /* Hiện ra khi có kết quả */
+}
+
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-divider);
+    transition: background-color 0.2s;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item:hover {
+    background-color: var(--background-btn-hover);
+    color: var(--text-primary);
+}
+
+.suggestion-item img {
+    width: 40px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-right: 10px;
+}
+
+.suggestion-item .suggestion-info h4 {
+    margin: 0 0 4px 0;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text-primary);
+}
+
+.suggestion-item .suggestion-info p {
+    margin: 0;
+    font-size: 0.8rem;
 }
