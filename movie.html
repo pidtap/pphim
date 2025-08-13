@@ -43,6 +43,16 @@
             <button class="carousel-nav-btn prev"><i class="fas fa-chevron-left"></i></button>
             <button class="carousel-nav-btn next"><i class="fas fa-chevron-right"></i></button>
         </section>
+        <section id="related-movies-section" class="category-section" style="display: none; max-width: 1200px; margin: 40px auto; padding: 0 15px;">
+    <div class="category-header">
+        <h2 class="category-title">Có thể bạn cũng thích</h2>
+    </div>
+    <div id="related-movies-carousel" class="movie-carousel">
+        <div class="skeleton-carousel">${'<div class="skeleton skeleton-card"></div>'.repeat(7)}</div>
+    </div>
+    <button class="carousel-nav-btn prev"><i class="fas fa-chevron-left"></i></button>
+    <button class="carousel-nav-btn next"><i class="fas fa-chevron-right"></i></button>
+</section>
     </main>
 
     <footer>
@@ -158,4 +168,7 @@
       </div>
   </div>
 </body>
+<div id="loading-spinner" class="spinner-overlay">
+    <div class="spinner"></div>
+</div>
 </html>

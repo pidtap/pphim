@@ -15,11 +15,12 @@ let relatedMoviesData = [];
 async function loadWatchPage(slug) {
     currentMovieSlug = slug;
     const config = getCurrentApiConfig();
+    showSpinner(); // Hiện spinner trước khi bắt đầu tải
     try {
         const data = await getMovieDetails(slug); // Dùng hàm từ shared.js
         if (!data) throw new Error("Không lấy được chi tiết phim.");
         
-        // Cần fetch lại để lấy danh sách tập phim đầy đủ
+        // Fetch lại để lấy danh sách tập phim đầy đủ
         const res = await fetch(`${config.base}${config.paths.details(slug)}`);
         const fullData = await res.json();
         
@@ -44,7 +45,6 @@ async function loadWatchPage(slug) {
         if (serverToSelect) {
             serverToSelect.click();
         } else {
-            // Trường hợp không có server nào, vẫn gọi để xử lý giao diện
             updateEpisodeList(0);
         }
         
@@ -53,6 +53,8 @@ async function loadWatchPage(slug) {
     } catch (error) {
         console.error("Lỗi khi tải trang xem phim:", error);
         document.getElementById('movie-title').textContent = "Lỗi khi tải thông tin phim.";
+    } finally {
+        hideSpinner(); // Luôn ẩn spinner sau khi tải xong (kể cả khi lỗi)
     }
 }
 
@@ -181,7 +183,8 @@ function playEpisode(m3u8Link, embedLink, serverIndex, episodeIndex, episodeName
             videoPlayer = videojs('my-video-player', {
                 autoplay: true, controls: true, responsive: true, fluid: true,
                 playbackRates: [0.5, 1, 1.5, 2],
-                pictureInPictureToggle: true
+                pictureInPictureToggle: true,
+                
             });
 
             videoPlayer.on('ended', handleVideoEnded);

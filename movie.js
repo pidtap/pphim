@@ -110,11 +110,40 @@ function attachCarouselEventsForSection(section) {
     new ResizeObserver(updateNavButtons).observe(carousel);
     updateNavButtons();
 }
+// Dán hàm này vào cuối tệp movie.js
+async function loadRelatedMovies() {
+    const relatedSection = document.getElementById('related-movies-section');
+    const carousel = document.getElementById('related-movies-carousel');
+    if (!relatedSection || !carousel) return;
+    
+    relatedSection.style.display = 'block'; // Hiển thị section ngay lập tức để người dùng thấy skeleton
+    const config = getCurrentApiConfig();
 
+    try {
+        const res = await fetch(`${config.base}${config.paths.related()}`);
+        const data = await res.json();
+        let relatedMovies = config.dataAccess.relatedItems(data) || [];
+        
+        // Áp dụng transform nếu có (quan trọng cho Nguồn C)
+        if (config.dataAccess.transform) {
+            relatedMovies = relatedMovies.map(movie => config.dataAccess.transform(movie));
+        }
+        
+        if (relatedMovies.length > 0) {
+            carousel.innerHTML = ''; // Xóa skeleton
+            relatedMovies.forEach(movie => carousel.appendChild(createMovieCard(movie)));
+            attachCarouselEventsForSection(relatedSection);
+        } else {
+            relatedSection.style.display = 'none';
+        }
+    } catch (error) {
+        console.error("Lỗi tải phim liên quan:", error);
+        relatedSection.style.display = 'none';
+    }
+}
 
 // --- HÀM KHỞI CHẠY CHÍNH ---
 document.addEventListener('DOMContentLoaded', async () => {
-    // Hàm xử lý tìm kiếm mới: Luôn điều hướng đến trang search.html
     const universalSearchHandler = (query) => {
         if (query) {
             window.location.href = `search.html?q=${encodeURIComponent(query)}`;
@@ -126,15 +155,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     const movieSlug = urlParams.get('slug');
 
     if (movieSlug) {
-        const details = await getMovieDetails(movieSlug);
-        if (details) {
-            document.title = `${details.name} - P Movie`;
-            renderFullMoviePage(details);
-            renderFavoritesSection(); // Gọi hàm hiển thị phim yêu thích
-        } else {
-             document.getElementById('movie-hero-section').innerHTML = '<p style="text-align:center; padding: 50px;">Không thể tải thông tin phim.</p>';
+        showSpinner(); // Hiện spinner trước khi bắt đầu tải
+        try {
+            const details = await getMovieDetails(movieSlug);
+            if (details) {
+                document.title = `${details.name} - P Movie`;
+                renderFullMoviePage(details);
+                renderFavoritesSection();
+                loadRelatedMovies();
+            } else {
+                document.getElementById('movie-hero-section').innerHTML = '<p style="text-align:center; padding: 50px;">Không thể tải thông tin phim.</p>';
+            }
+        } catch (error) {
+            console.error("Lỗi khi tải trang chi tiết phim:", error);
+            document.getElementById('movie-hero-section').innerHTML = '<p style="text-align:center; padding: 50px;">Có lỗi xảy ra khi tải phim.</p>';
+        } finally {
+            hideSpinner(); // Luôn ẩn spinner sau khi tải xong (kể cả khi lỗi)
         }
     } else {
-        document.getElementById('movie-hero-section').innerHTML = '<p style-align:center; padding: 50px;">Không tìm thấy phim.</p>';
+        document.getElementById('movie-hero-section').innerHTML = '<p style="text-align:center; padding: 50px;">Không tìm thấy phim.</p>';
     }
 });

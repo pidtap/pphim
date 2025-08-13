@@ -695,3 +695,11 @@ function deleteFromHistory(slug, buttonElement) {
         }
     });
 }
+// Dán hai hàm này vào cuối tệp shared.js
+function showSpinner() {
+    document.getElementById('loading-spinner')?.classList.add('visible');
+}
+
+function hideSpinner() {
+    document.getElementById('loading-spinner')?.classList.remove('visible');
+}
