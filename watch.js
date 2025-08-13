@@ -180,19 +180,37 @@ function playEpisode(m3u8Link, embedLink, serverIndex, episodeIndex, episodeName
         if (!videoPlayer) {
             videoPlayer = videojs('my-video-player', {
                 autoplay: true, controls: true, responsive: true, fluid: true,
-                playbackRates: [0.5, 1, 1.5, 2]
+                playbackRates: [0.5, 1, 1.5, 2],
+                pictureInPictureToggle: true
             });
 
             videoPlayer.on('ended', handleVideoEnded);
             
             // SỬA LỖI 1: Cập nhật sự kiện timeupdate để lưu đúng tiến trình
-            videoPlayer.on('timeupdate', () => {
-                // Luôn lấy index mới nhất được lưu trên player
+           videoPlayer.on('timeupdate', () => {
+                const currentTime = videoPlayer.currentTime();
+                const duration = videoPlayer.duration();
+                const nextEpisodeOverlay = document.getElementById('next-episode-overlay');
+                
+                // 1. Lưu tiến trình xem phim
                 const currentServerIndex = videoPlayer.currentServerIndex;
                 const currentEpisodeIndex = videoPlayer.currentEpisodeIndex;
-                // Chỉ lưu khi các index này đã được định nghĩa
                 if (typeof currentEpisodeIndex !== 'undefined') {
-                    saveWatchProgress(currentMovieSlug, null, currentServerIndex, currentEpisodeIndex, videoPlayer.currentTime());
+                    saveWatchProgress(currentMovieSlug, null, currentServerIndex, currentEpisodeIndex, currentTime);
+                }
+
+                // 2. Hiển thị nút "Tập tiếp theo" khi còn 60 giây cuối
+                if (duration && nextEpisodeOverlay) {
+                    const timeLeft = duration - currentTime;
+                    // Kiểm tra xem có tập tiếp theo không
+                    const nextBtn = document.getElementById('next-episode-btn');
+                    const hasNextEpisode = nextBtn && !nextBtn.disabled;
+
+                    if (timeLeft <= 60 && hasNextEpisode) {
+                        nextEpisodeOverlay.classList.add('visible');
+                    } else {
+                        nextEpisodeOverlay.classList.remove('visible');
+                    }
                 }
             });
 
@@ -370,7 +388,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     initializeSharedUI(universalSearchHandler);
+      document.addEventListener('keydown', (event) => {
+        // Bỏ qua nếu người dùng đang gõ vào ô tìm kiếm
+        if (event.target.tagName === 'INPUT') {
+            return;
+        }
 
+        // Chỉ hoạt động khi trình phát video.js tồn tại và đang hiển thị
+        if (videoPlayer && !videoPlayer.el().style.display.includes('none')) {
+            switch (event.code) {
+                case 'Space':
+                    // Ngăn trình duyệt cuộn trang khi nhấn phím cách
+                    event.preventDefault();
+                    if (videoPlayer.paused()) {
+                        videoPlayer.play();
+                    } else {
+                        videoPlayer.pause();
+                    }
+                    break;
+                
+                case 'KeyF':
+                    // Bật/tắt toàn màn hình
+                    event.preventDefault();
+                    if (videoPlayer.isFullscreen()) {
+                        videoPlayer.exitFullscreen();
+                    } else {
+                        videoPlayer.requestFullscreen();
+                    }
+                    break;
+            }
+        }
+    });
     // Tạo sẵn iframe player
     const playerWrapper = document.getElementById('video-player-container');
     if (playerWrapper) {
@@ -396,7 +444,17 @@ document.addEventListener('DOMContentLoaded', () => {
             updateBtnState();
         });
     }
-
+    if (playerWrapper) { // Chúng ta vẫn có thể dùng biến playerWrapper ở đây
+        const nextEpisodeOverlay = document.createElement('button');
+        nextEpisodeOverlay.id = 'next-episode-overlay';
+        nextEpisodeOverlay.innerHTML = '<i class="fas fa-step-forward"></i> Tập tiếp theo';
+        
+        nextEpisodeOverlay.addEventListener('click', () => {
+            playNextEpisode(); 
+        });
+        
+        playerWrapper.appendChild(nextEpisodeOverlay);
+    }
     // Xử lý custom select cho danh sách tập
     const selectSelected = document.getElementById('select-selected');
     const selectItems = document.getElementById('select-items');

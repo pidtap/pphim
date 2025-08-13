@@ -2093,3 +2093,66 @@ body.light-mode .slide-text-wrapper .meta {
     margin: 0;
     font-size: 0.8rem;
 }
+/* === NÚT TẬP TIẾP THEO TRÊN VIDEO === */
+#next-episode-overlay {
+    position: absolute;
+    bottom: 80px; /* Vị trí phía trên thanh điều khiển */
+    right: 20px;
+    z-index: 20;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    opacity: 0; /* Mặc định ẩn */
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+}
+
+#next-episode-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+#next-episode-overlay:hover {
+    background-color: var(--color-primary);
+    color: var(--text-dark);
+}
+
+#next-episode-overlay i {
+    margin-right: 8px;
+}
+/* === CUSTOM VIDEO.JS SKIN === */
+
+/* Màu chính cho thanh tiến trình, thanh âm lượng */
+.video-js .vjs-play-progress,
+.video-js .vjs-volume-panel .vjs-volume-level {
+  background-color: var(--color-primary);
+}
+
+/* Nút Play lớn ở giữa */
+.video-js .vjs-big-play-button {
+  background-color: rgba(43, 51, 63, 0.7);
+  border-color: var(--color-primary); /* Viền màu cam */
+  transition: all 0.2s ease;
+}
+.video-js:hover .vjs-big-play-button,
+.video-js .vjs-big-play-button:focus {
+  background-color: rgba(var(--color-primary-rgb), 0.8); /* Nền màu cam khi hover */
+  border-color: var(--color-primary-hover);
+}
+
+/* Màu chữ của thời gian */
+.video-js .vjs-time-control {
+    color: var(--text-primary);
+}
+
+/* Màu của icon khi hover trên thanh điều khiển */
+.video-js .vjs-control:hover .vjs-icon-placeholder,
+.video-js .vjs-menu-button-popup .vjs-menu-item:hover {
+    color: var(--color-primary);
+}
