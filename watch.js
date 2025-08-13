@@ -103,7 +103,9 @@ function updateEpisodeList(serverIndex) {
             optionDiv.dataset.episodeIndex = index;
 
             optionDiv.addEventListener('click', function() {
-                playEpisode(this.dataset.m3u8, this.dataset.embed, serverIndex, index);
+                // Truyền trực tiếp tên tập phim (ep.name) vào hàm playEpisode
+                playEpisode(this.dataset.m3u8, this.dataset.embed, serverIndex, index, ep.name);
+                
                 selectSelected.textContent = this.textContent;
                 selectItems.querySelectorAll('div').forEach(item => item.classList.remove('same-as-selected'));
                 this.classList.add('same-as-selected');
@@ -130,8 +132,9 @@ function updateEpisodeList(serverIndex) {
     }
 }
 
+
 /** Phát một tập phim */
-function playEpisode(m3u8Link, embedLink, serverIndex, episodeIndex) {
+function playEpisode(m3u8Link, embedLink, serverIndex, episodeIndex, episodeName) { // Thêm episodeName
     if ((!m3u8Link || m3u8Link === 'undefined') && (!embedLink || embedLink === 'undefined')) {
         showCustomAlert("Tập phim này hiện không có nguồn phát.", 2000);
         return;
@@ -140,12 +143,11 @@ function playEpisode(m3u8Link, embedLink, serverIndex, episodeIndex) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
     const playerContainer = document.getElementById('video-player-container');
-    const videoJsPlayerEl = document.getElementById('my-video-player');
-    const iframePlayerEl = document.getElementById('iframe-player');
-    
     playerContainer.style.display = 'block';
     
-    // **Đây là logic quan trọng bạn yêu cầu: xử lý iframe và video**
+    // ... (phần code xử lý iframe và videojs giữ nguyên)
+    const videoJsPlayerEl = document.getElementById('my-video-player');
+    const iframePlayerEl = document.getElementById('iframe-player');
     if (getCurrentApiConfig().id === 'nguonc' && embedLink) {
         videoJsPlayerEl.style.display = 'none';
         if (videoPlayer) videoPlayer.pause();
@@ -176,9 +178,9 @@ function playEpisode(m3u8Link, embedLink, serverIndex, episodeIndex) {
     }
     
     saveWatchProgress(currentMovieSlug, null, serverIndex, episodeIndex);
-    updateWatchHistory();
+    updateWatchHistory(episodeName); // Truyền episodeName vào đây
     updateNavButtonStates(episodeIndex);
-    document.getElementById('episode-info').textContent = `Bạn đang xem tập: ${episodeIndex + 1} / ${currentEpisodeList.length}`;
+    document.getElementById('episode-info').textContent = `Bạn đang xem: ${episodeName}`;
 }
 
 function handleVideoEnded() {
@@ -256,22 +258,27 @@ function attachCarouselEventsForRelated() {
 }
 
 /** Cập nhật lịch sử xem phim */
-function updateWatchHistory() {
-    if (!currentMovieData) return;
+function updateWatchHistory(episodeName) { // Thêm episodeName
+    if (!currentMovieData || !episodeName) return;
     let history = JSON.parse(localStorage.getItem('watchHistoryList') || '[]');
     history = history.filter(item => item.slug !== currentMovieData.slug);
+    
     const config = getCurrentApiConfig();
     const historyItem = {
         slug: currentMovieData.slug,
         name: currentMovieData.name,
         thumb_url: currentMovieData.thumb_url || currentMovieData.poster_url,
-        episode_current: document.getElementById('select-selected').textContent,
+        episode_current: episodeName, // Sử dụng episodeName thay vì đọc từ DOM
+        year: currentMovieData.year,
+        country: currentMovieData.country,
+        lang: currentMovieData.lang,
         source: {
             id: config.id,
             name: config.name,
             number: Object.keys(API_SOURCES).indexOf(config.id) + 1
         }
     };
+    
     history.unshift(historyItem);
     localStorage.setItem('watchHistoryList', JSON.stringify(history.slice(0, 20)));
 }

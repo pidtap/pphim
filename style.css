@@ -1752,14 +1752,16 @@ body.light-mode .slide-text-wrapper .meta {
 }
 /* === CSS CHO MOVIE ITEM - THIẾT KẾ CHUYÊN NGHIỆP MỚI === */
 
+/* === CSS CHO MOVIE ITEM - GIAO DIỆN CHUYÊN NGHIỆP / CLICK ĐƠN GIẢN === */
+
 .movie-item {
     position: relative;
     border-radius: 8px;
-    overflow: hidden; /* Quan trọng để bo góc các lớp con */
+    overflow: hidden;
     cursor: pointer;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    aspect-ratio: 2 / 3; /* Luôn giữ tỷ lệ đứng */
+    aspect-ratio: 2 / 3;
     background-color: var(--background-content);
 }
 
@@ -1773,10 +1775,10 @@ body.light-mode .slide-text-wrapper .meta {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.4s ease;
+    transition: transform 0.4s ease, filter 0.3s ease;
 }
 
-/* --- Các lớp phủ --- */
+/* --- Các lớp phủ thông tin --- */
 .card-labels {
     position: absolute;
     top: 10px;
@@ -1785,7 +1787,6 @@ body.light-mode .slide-text-wrapper .meta {
     z-index: 3;
     display: flex;
     justify-content: space-between;
-    pointer-events: none; /* Cho phép click xuyên qua */
 }
 
 .card-label {
@@ -1806,7 +1807,6 @@ body.light-mode .slide-text-wrapper .meta {
     color: #fff;
     z-index: 2;
     background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 20%, transparent 100%);
-    pointer-events: none;
 }
 
 .card-content-overlay h3 {
@@ -1824,7 +1824,7 @@ body.light-mode .slide-text-wrapper .meta {
     color: #ccc;
 }
 
-/* --- Lớp phủ tương tác (Hover & Click) --- */
+/* --- Lớp phủ tương tác khi hover --- */
 .card-interaction-overlay {
     position: absolute;
     top: 0;
@@ -1834,7 +1834,6 @@ body.light-mode .slide-text-wrapper .meta {
     background-color: rgba(0, 0, 0, 0);
     z-index: 4;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
     opacity: 0;
@@ -1844,43 +1843,10 @@ body.light-mode .slide-text-wrapper .meta {
 .play-icon {
     font-size: 3rem;
     color: #fff;
-    opacity: 0;
-    transform: scale(0.8);
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    pointer-events: none; /* THÊM DÒNG NÀY */
+    transition: transform 0.3s ease;
 }
 
-.card-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    position: absolute;
-}
-
-.card-actions .btn {
-    background: rgba(255, 255, 255, 0.9);
-    color: #000;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 20px;
-    font-weight: 600;
-    cursor: pointer;
-    transform: translateY(10px);
-    opacity: 0;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    white-space: nowrap;
-}
-.card-actions .btn:hover {
-    background: #fff;
-}
-.card-actions .btn i {
-    margin-right: 8px;
-}
-
-
-/* === HIỆU ỨNG KHI TƯƠNG TÁC === */
-
-/* Khi Hover */
+/* === HIỆU ỨNG KHI HOVER === */
 .movie-item:hover {
     transform: scale(1.05);
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
@@ -1888,33 +1854,48 @@ body.light-mode .slide-text-wrapper .meta {
 
 .movie-item:hover .card-poster img {
     transform: scale(1.1);
+    filter: brightness(0.6); /* Làm ảnh tối lại */
 }
 
 .movie-item:hover .card-interaction-overlay {
-    opacity: 1;
-    background-color: rgba(0, 0, 0, 0.6);
+    opacity: 1; /* Hiển thị lớp phủ và icon play */
 }
 
-.movie-item:hover .play-icon {
-    opacity: 1;
-    transform: scale(1);
-}
-
-/* Khi được Click (active) */
-.movie-item.active .card-interaction-overlay {
-    opacity: 1;
+/* Nút xóa lịch sử (vẫn giữ lại) */
+.delete-history-btn,
+.delete-favorite-btn {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 5;
+    width: 26px;
+    height: 26px;
     background-color: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 24px;
+    text-align: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
 }
 
-.movie-item.active .play-icon {
-    opacity: 0; /* Ẩn icon play */
-    transform: scale(0.8);
+.movie-item:hover .delete-history-btn,
+.movie-item:hover .delete-favorite-btn {
+    opacity: 1;
 }
 
-.movie-item.active .card-actions .btn {
-    opacity: 1; /* Hiện các nút bấm */
-    transform: translateY(0);
+.delete-history-btn:hover,
+.delete-favorite-btn:hover {
+    transform: scale(1.1);
+    background-color: #e50914;
+    border-color: #e50914;
 }
+.movie-item:hover .delete-history-btn { opacity: 1; }
+.delete-history-btn:hover { transform: scale(1.1); }
 
 /* 4. Nút "Xem thêm" với định dạng mới */
 .see-more-link {
@@ -1939,29 +1920,36 @@ body.light-mode .slide-text-wrapper .meta {
 .see-more-link i {
     margin-left: 5px;
 }
-/* === HIỆU ỨNG BĂNG CHUYỀN LIỀN MẠCH === */
 
-@keyframes marquee-scroll {
-    0% { transform: translateX(0%); }
-    100% { transform: translateX(-50%); } /* Trượt đúng 1 nửa để tạo vòng lặp */
+/* === NÚT XÓA KHỎI LỊCH SỬ === */
+
+.delete-history-btn {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 5; /* Phải cao hơn các lớp phủ khác */
+    width: 26px;
+    height: 26px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 24px; /* Căn giữa dấu 'X' */
+    text-align: center;
+    cursor: pointer;
+    opacity: 0; /* Mặc định sẽ ẩn */
+    transition: opacity 0.2s, transform 0.2s;
 }
 
-.movie-carousel.autoscroll {
-    display: flex;
-    width: max-content;
-    animation: marquee-scroll 180s linear infinite; /* Tốc độ mặc định chậm */
+/* Hiển thị nút xóa khi di chuột vào thẻ phim */
+.movie-item:hover .delete-history-btn {
+    opacity: 1;
 }
 
-/* Dừng animation khi người dùng di chuột vào */
-.category-section:hover .movie-carousel.autoscroll {
-    animation-play-state: paused;
-}
-
-/* Tạo hiệu ứng không đồng đều */
-.category-section:nth-child(odd) .movie-carousel.autoscroll {
-    animation-duration: 200s; /* Tốc độ nhanh hơn */
-}
-
-.category-section:nth-child(3n) .movie-carousel.autoscroll {
-    animation-direction: reverse; /* Trượt ngược lại */
+.delete-history-btn:hover {
+    transform: scale(1.1);
+    background-color: #e50914; /* Đổi màu khi di chuột vào nút */
+    border-color: #e50914;
 }

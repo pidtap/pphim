@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
             favoritesGrid.innerHTML = ''; // Xóa nội dung chờ (nếu có)
             favorites.forEach(movie => {
                 // Dùng hàm createMovieCard từ shared.js
-                const movieCard = createMovieCard(movie);
+                const movieCard = createMovieCard(movie, false, true);
                 favoritesGrid.appendChild(movieCard);
             });
         } else {

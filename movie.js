@@ -81,7 +81,7 @@ function renderFavoritesSection() {
         favoritesSection.style.display = 'block';
         const favoritesCarousel = favoritesSection.querySelector('.movie-carousel');
         favoritesCarousel.innerHTML = '';
-        favoritesData.slice(0, 10).forEach(movie => favoritesCarousel.appendChild(createMovieCard(movie)));
+        favoritesData.slice(0, 10).forEach(movie => favoritesCarousel.appendChild(createMovieCard(movie, false, true)));
         attachCarouselEventsForSection(favoritesSection);
     } else {
         favoritesSection.style.display = 'none';

@@ -143,6 +143,8 @@ async function renderHomepage() {
                 <h2 class="category-title">Lịch sử xem phim</h2>
             </div>
             <div class="movie-carousel"></div>
+            <button class="carousel-nav-btn prev"><i class="fas fa-chevron-left"></i></button>
+            <button class="carousel-nav-btn next"><i class="fas fa-chevron-right"></i></button>
         </section>`;
     
     homeCategories.forEach(category => {
@@ -153,6 +155,8 @@ async function renderHomepage() {
                     <a href="#" class="see-more-link" onclick="event.preventDefault(); showCategoryPage('${category.slug}', '${category.title}')">Xem thêm <i class="fas fa-chevron-right"></i></a>
                 </div>
                 <div class="movie-carousel"><div class="skeleton-carousel">${'<div class="skeleton skeleton-card"></div>'.repeat(7)}</div></div>
+                <button class="carousel-nav-btn prev"><i class="fas fa-chevron-left"></i></button>
+                <button class="carousel-nav-btn next"><i class="fas fa-chevron-right"></i></button>
             </section>`;
     });
 
@@ -163,6 +167,8 @@ async function renderHomepage() {
                 <a href="favorites.html" class="see-more-link">Xem thêm <i class="fas fa-chevron-right"></i></a>
             </div>
             <div class="movie-carousel"></div>
+            <button class="carousel-nav-btn prev"><i class="fas fa-chevron-left"></i></button>
+            <button class="carousel-nav-btn next"><i class="fas fa-chevron-right"></i></button>
         </section>`;
 
     pageContent.innerHTML = allSectionsHtml;
@@ -177,6 +183,7 @@ async function renderHomepage() {
             const carousel = section.querySelector('.movie-carousel');
             carousel.innerHTML = '';
             movies.forEach(movie => carousel.appendChild(createMovieCard(movie)));
+            attachCarouselEventsForSection(section); // Kích hoạt lại hàm gắn sự kiện cho nút bấm
         } else if (section) {
             section.style.display = 'none';
         }
@@ -184,7 +191,6 @@ async function renderHomepage() {
     
     initializeAutoScrollCarousels();
 }
-
 function renderHistorySection() {
     const historySection = document.getElementById('history-section');
     if (!historySection) return;
@@ -208,7 +214,7 @@ function renderFavoritesSection() {
         favoritesSection.style.display = 'block';
         const favoritesCarousel = favoritesSection.querySelector('.movie-carousel');
         favoritesCarousel.innerHTML = '';
-        favoritesData.forEach(movie => favoritesCarousel.appendChild(createMovieCard(movie)));
+        favoritesData.forEach(movie => favoritesCarousel.appendChild(createMovieCard(movie, false, true)));
         attachCarouselEventsForSection(favoritesSection);
     } else {
         favoritesSection.style.display = 'none';
@@ -371,19 +377,7 @@ function attachCarouselEventsForSection(section) {
  * Chuẩn bị các carousel để tự động trượt (Hiệu ứng băng chuyền)
  */
 function initializeAutoScrollCarousels() {
-    const carousels = document.querySelectorAll('.movie-carousel');
-
-    carousels.forEach(carousel => {
-        // Chỉ nhân đôi nội dung nếu có đủ phim để trượt
-        if (carousel.scrollWidth > carousel.clientWidth) {
-            carousel.classList.add('autoscroll');
-            const movieItems = Array.from(carousel.children);
-            movieItems.forEach(item => {
-                const clone = item.cloneNode(true);
-                carousel.appendChild(clone);
-            });
-        }
-    });
+    
 }
 // --- 3. KHỞI CHẠY ---
 document.addEventListener('DOMContentLoaded', () => {

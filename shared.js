@@ -143,9 +143,25 @@ async function getMovieDetails(slug) {
  * @param {object} movie - Đối tượng dữ liệu phim.
  * @returns {HTMLElement} Phần tử DOM của thẻ phim.
  */
-function createMovieCard(movie) {
+/**
+ * Tạo một thẻ phim (movie card) với thiết kế chuyên nghiệp mới
+ * @param {object} movie - Đối tượng dữ liệu phim.
+ * @param {boolean} isFromHistory - Cờ để xác định có phải phim từ lịch sử không.
+ * @returns {HTMLElement} Phần tử DOM của thẻ phim.
+ */
+/**
+ * Tạo một thẻ phim (movie card) - PHIÊN BẢN CHỐNG LỖI DỮ LIỆU
+ * @param {object} movie - Đối tượng dữ liệu phim.
+ * @param {boolean} isFromHistory - Cờ để xác định có phải phim từ lịch sử không.
+ * @returns {HTMLElement} Phần tử DOM của thẻ phim.
+ */
+function createMovieCard(movie, isFromHistory = false, isFromFavorites = false) {
+    if (!movie || !movie.slug) {
+        console.error('Dữ liệu phim không hợp lệ, đã được bỏ qua:', movie);
+        return document.createDocumentFragment();
+    }
+
     const config = getCurrentApiConfig();
-    
     const finalImageUrl = movie.thumb_url || movie.poster_url;
     const imageUrl = finalImageUrl 
         ? (finalImageUrl.startsWith('http') ? finalImageUrl : config.img_base + finalImageUrl) 
@@ -161,15 +177,21 @@ function createMovieCard(movie) {
     const div = document.createElement('div');
     div.className = 'movie-item';
 
+    let deleteButtonHtml = '';
+    if (isFromHistory) {
+        deleteButtonHtml = `<button class="delete-history-btn" onclick="deleteFromHistory('${slug}', this)" title="Xóa khỏi lịch sử">&times;</button>`;
+    } else if (isFromFavorites) {
+        deleteButtonHtml = `<button class="delete-favorite-btn" onclick="deleteFromFavorites('${slug}', this)" title="Xóa khỏi yêu thích">&times;</button>`;
+    }
+
     div.innerHTML = `
+        ${deleteButtonHtml}
         <div class="card-poster">
             <img src="${imageUrl}" alt="${name}" loading="lazy">
-            
             <div class="card-labels">
                 <span class="card-label label-country">${country}</span>
                 <span class="card-label label-language">${language}</span>
             </div>
-
             <div class="card-content-overlay">
                 <h3>${name}</h3>
                 <div class="card-meta">
@@ -177,38 +199,18 @@ function createMovieCard(movie) {
                     <span class="meta-episode">${episode}</span>
                 </div>
             </div>
-
             <div class="card-interaction-overlay">
                 <i class="fas fa-play play-icon"></i>
-                <div class="card-actions">
-                    <button class="btn btn-watch-now"><i class="fas fa-play"></i> Xem Ngay</button>
-                    <button class="btn btn-info"><i class="fas fa-info-circle"></i> Thông Tin</button>
-                </div>
             </div>
         </div>
     `;
 
-    // Gắn sự kiện cho các nút bên trong
-    div.querySelector('.btn-watch-now').addEventListener('click', (e) => {
-        e.stopPropagation(); // Ngăn sự kiện lan ra thẻ cha
-        window.location.href = `watch.html?slug=${slug}`;
-    });
-
-    div.querySelector('.btn-info').addEventListener('click', (e) => {
-        e.stopPropagation(); // Ngăn sự kiện lan ra thẻ cha
-        window.location.href = `movie.html?slug=${slug}`;
-    });
-
-    // Gắn sự kiện cho toàn bộ thẻ phim
-    div.addEventListener('click', () => {
-        // Tìm và đóng thẻ đang active khác (nếu có)
-        const currentActive = document.querySelector('.movie-item.active');
-        if (currentActive && currentActive !== div) {
-            currentActive.classList.remove('active');
-        }
-        // Kích hoạt hoặc hủy kích hoạt thẻ hiện tại
-        div.classList.toggle('active');
-    });
+    const interactionOverlay = div.querySelector('.card-interaction-overlay');
+    if (interactionOverlay) {
+        interactionOverlay.onclick = () => {
+            window.location.href = `movie.html?slug=${slug}`;
+        };
+    }
 
     return div;
 }
@@ -499,10 +501,39 @@ function initializeSharedUI(searchHandler) {
             document.getElementById('custom-alert-popup').style.display = 'none';
         });
     }
-    document.addEventListener('click', (e) => {
-    const activeCard = document.querySelector('.movie-item.active');
-    if (activeCard && !activeCard.contains(e.target)) {
-        activeCard.classList.remove('active');
-    }
-});
+}
+/**
+ * Xóa một phim khỏi lịch sử xem
+ * @param {string} slug - Slug của phim cần xóa.
+ * @param {HTMLElement} buttonElement - Nút bấm được click.
+ */
+function deleteFromFavorites(slug, buttonElement) {
+    event.stopPropagation();
+
+    // 1. Cập nhật localStorage
+    let favorites = JSON.parse(localStorage.getItem('favoriteMovies') || '[]');
+    const updatedFavorites = favorites.filter(movie => movie.slug !== slug);
+    localStorage.setItem('favoriteMovies', JSON.stringify(updatedFavorites));
+    
+    showCustomAlert('Đã xóa khỏi danh sách yêu thích.', 1500);
+
+    // 2. Cập nhật giao diện
+    const movieCard = buttonElement.closest('.movie-item');
+    const container = movieCard.parentElement;
+
+    movieCard.style.transition = 'opacity 0.3s ease';
+    movieCard.style.opacity = '0';
+    
+    setTimeout(() => {
+        movieCard.remove();
+        // 3. Kiểm tra xem danh sách có còn phim nào không
+        if (container && container.children.length === 0) {
+            if (container.id === 'favorites-grid') {
+                container.innerHTML = '<p style="grid-column: 1 / -1; text-align: center;">Bạn chưa có phim yêu thích nào.</p>';
+            } else if (container.classList.contains('movie-carousel')) {
+                const section = container.closest('.category-section');
+                if (section) section.style.display = 'none';
+            }
+        }
+    }, 300);
 }
