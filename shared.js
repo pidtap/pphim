@@ -368,7 +368,42 @@ function showCustomAlert(message, durationInMs, callback) {
     }, durationInMs);
 }
 
+/**
+ * Hiển thị hộp thoại xác nhận
+ * @param {string} message - Thông điệp cần xác nhận.
+ * @param {function} onConfirm - Hàm sẽ được gọi khi người dùng bấm "Xác nhận".
+ */
+function showCustomConfirm(message, onConfirm) {
+    const overlay = document.getElementById('custom-confirm-overlay');
+    const popup = document.getElementById('custom-confirm-popup');
+    const messageEl = document.getElementById('custom-confirm-message');
+    const okBtn = document.getElementById('custom-confirm-ok-btn');
+    const cancelBtn = document.getElementById('custom-confirm-cancel-btn');
 
+    if (!overlay || !popup || !messageEl || !okBtn || !cancelBtn) return;
+
+    messageEl.textContent = message;
+    overlay.style.display = 'block';
+    popup.style.display = 'block';
+
+    const closePopup = () => {
+        overlay.style.display = 'none';
+        popup.style.display = 'none';
+        // Gỡ bỏ event listener để tránh bị gọi nhiều lần
+        okBtn.replaceWith(okBtn.cloneNode(true));
+        cancelBtn.replaceWith(cancelBtn.cloneNode(true));
+    };
+
+    okBtn.onclick = () => {
+        if (typeof onConfirm === 'function') {
+            onConfirm();
+        }
+        closePopup();
+    };
+
+    cancelBtn.onclick = closePopup;
+    overlay.onclick = closePopup;
+}
 // --- 4. HÀM KHỞI TẠO GIAO DIỆN DÙNG CHUNG ---
 
 /**
@@ -507,33 +542,54 @@ function initializeSharedUI(searchHandler) {
  * @param {string} slug - Slug của phim cần xóa.
  * @param {HTMLElement} buttonElement - Nút bấm được click.
  */
+function deleteFromHistory(slug, buttonElement) {
+    event.stopPropagation();
+    showCustomConfirm("Bạn có chắc chắn muốn xóa phim này khỏi lịch sử?", () => {
+        let history = JSON.parse(localStorage.getItem('watchHistoryList') || '[]');
+        const updatedHistory = history.filter(movie => movie.slug !== slug);
+        localStorage.setItem('watchHistoryList', JSON.stringify(updatedHistory));
+
+        const movieCard = buttonElement.closest('.movie-item');
+        if (movieCard) {
+            movieCard.style.transition = 'opacity 0.3s ease';
+            movieCard.style.opacity = '0';
+            setTimeout(() => {
+                movieCard.remove();
+                const container = movieCard.parentElement;
+                if (container && container.children.length === 0) {
+                    const section = container.closest('.category-section');
+                    if (section) section.style.display = 'none';
+                }
+            }, 300);
+        }
+    });
+}
+
 function deleteFromFavorites(slug, buttonElement) {
     event.stopPropagation();
+    showCustomConfirm("Bạn có chắc chắn muốn xóa phim này khỏi danh sách yêu thích?", () => {
+        let favorites = JSON.parse(localStorage.getItem('favoriteMovies') || '[]');
+        const updatedFavorites = favorites.filter(movie => movie.slug !== slug);
+        localStorage.setItem('favoriteMovies', JSON.stringify(updatedFavorites));
+        
+        showCustomAlert('Đã xóa khỏi danh sách yêu thích.', 1500);
 
-    // 1. Cập nhật localStorage
-    let favorites = JSON.parse(localStorage.getItem('favoriteMovies') || '[]');
-    const updatedFavorites = favorites.filter(movie => movie.slug !== slug);
-    localStorage.setItem('favoriteMovies', JSON.stringify(updatedFavorites));
-    
-    showCustomAlert('Đã xóa khỏi danh sách yêu thích.', 1500);
-
-    // 2. Cập nhật giao diện
-    const movieCard = buttonElement.closest('.movie-item');
-    const container = movieCard.parentElement;
-
-    movieCard.style.transition = 'opacity 0.3s ease';
-    movieCard.style.opacity = '0';
-    
-    setTimeout(() => {
-        movieCard.remove();
-        // 3. Kiểm tra xem danh sách có còn phim nào không
-        if (container && container.children.length === 0) {
-            if (container.id === 'favorites-grid') {
-                container.innerHTML = '<p style="grid-column: 1 / -1; text-align: center;">Bạn chưa có phim yêu thích nào.</p>';
-            } else if (container.classList.contains('movie-carousel')) {
-                const section = container.closest('.category-section');
-                if (section) section.style.display = 'none';
-            }
+        const movieCard = buttonElement.closest('.movie-item');
+        if (movieCard) {
+            movieCard.style.transition = 'opacity 0.3s ease';
+            movieCard.style.opacity = '0';
+            setTimeout(() => {
+                movieCard.remove();
+                const container = movieCard.parentElement;
+                if (container && container.children.length === 0) {
+                    if (container.id === 'favorites-grid') {
+                        container.innerHTML = '<p style="grid-column: 1 / -1; text-align: center;">Bạn chưa có phim yêu thích nào.</p>';
+                    } else {
+                        const section = container.closest('.category-section');
+                        if (section) section.style.display = 'none';
+                    }
+                }
+            }, 300);
         }
-    }, 300);
+    });
 }

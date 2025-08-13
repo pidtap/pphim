@@ -69,9 +69,18 @@ function renderServerButtons() {
             button.className = 'server-btn';
             button.textContent = server.server_name;
             button.dataset.serverIndex = index;
+
             button.onclick = function() {
-                document.querySelectorAll('.server-btn').forEach(btn => btn.classList.remove('active'));
+                // Kích hoạt lại tất cả các nút trước
+                document.querySelectorAll('.server-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.disabled = false;
+                });
+                
+                // Vô hiệu hóa nút vừa được click
                 this.classList.add('active');
+                this.disabled = true;
+                
                 updateEpisodeList(index);
             };
             serverListDiv.appendChild(button);
@@ -80,6 +89,7 @@ function renderServerButtons() {
         serverSelectionDiv.style.display = 'none';
     }
 }
+
 
 /** Cập nhật danh sách tập khi đổi server */
 function updateEpisodeList(serverIndex) {
@@ -103,12 +113,18 @@ function updateEpisodeList(serverIndex) {
             optionDiv.dataset.episodeIndex = index;
 
             optionDiv.addEventListener('click', function() {
-                // Truyền trực tiếp tên tập phim (ep.name) vào hàm playEpisode
                 playEpisode(this.dataset.m3u8, this.dataset.embed, serverIndex, index, ep.name);
                 
                 selectSelected.textContent = this.textContent;
-                selectItems.querySelectorAll('div').forEach(item => item.classList.remove('same-as-selected'));
-                this.classList.add('same-as-selected');
+                
+                // Kích hoạt lại tất cả các tập và xóa style cũ
+                selectItems.querySelectorAll('div').forEach(item => {
+                    item.classList.remove('same-as-selected', 'disabled-episode');
+                });
+                
+                // Vô hiệu hóa tập vừa được chọn
+                this.classList.add('same-as-selected', 'disabled-episode');
+                
                 selectItems.classList.add('select-hide');
             });
             selectItems.appendChild(optionDiv);
@@ -131,7 +147,6 @@ function updateEpisodeList(serverIndex) {
         document.getElementById('video-player-container').style.display = 'none';
     }
 }
-
 
 /** Phát một tập phim */
 function playEpisode(m3u8Link, embedLink, serverIndex, episodeIndex, episodeName) { // Thêm episodeName

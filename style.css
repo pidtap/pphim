@@ -1861,7 +1861,6 @@ body.light-mode .slide-text-wrapper .meta {
     opacity: 1; /* Hiển thị lớp phủ và icon play */
 }
 
-/* Nút xóa lịch sử (vẫn giữ lại) */
 .delete-history-btn,
 .delete-favorite-btn {
     position: absolute;
@@ -1879,13 +1878,13 @@ body.light-mode .slide-text-wrapper .meta {
     line-height: 24px;
     text-align: center;
     cursor: pointer;
-    opacity: 0;
+    opacity: .5; /* Luôn hiển thị với độ mờ nhẹ */
     transition: opacity 0.2s, transform 0.2s;
 }
 
 .movie-item:hover .delete-history-btn,
 .movie-item:hover .delete-favorite-btn {
-    opacity: 1;
+    opacity: 1; /* Rõ hơn khi hover vào thẻ phim */
 }
 
 .delete-history-btn:hover,
@@ -1952,4 +1951,51 @@ body.light-mode .slide-text-wrapper .meta {
     transform: scale(1.1);
     background-color: #e50914; /* Đổi màu khi di chuột vào nút */
     border-color: #e50914;
+}
+/* Vô hiệu hóa nút server đang được chọn */
+.server-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Vô hiệu hóa tập phim đang được chọn trong dropdown */
+.select-items .disabled-episode {
+    pointer-events: none; /* Quan trọng: Ngăn không cho click */
+    opacity: 0.6;
+}
+/* === STYLE CHO HỘP THOẠI XÁC NHẬN === */
+#custom-confirm-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 400px;
+    background: var(--background-light);
+    border-radius: 8px;
+    z-index: 2000;
+    box-shadow: 0 5px 20px var(--shadow-color);
+    color: var(--text-primary);
+}
+
+.popup-btn-secondary {
+    background-color: var(--background-btn-hover);
+    color: var(--text-primary);
+    border: 1px solid var(--border-primary);
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.popup-btn-primary {
+    background-color: var(--color-primary);
+    color: var(--text-dark);
+    border: none;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
 }

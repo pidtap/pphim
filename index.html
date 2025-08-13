@@ -132,5 +132,18 @@
   <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
   <script src="shared.js"></script>
   <script src="main.js"></script>
+  <div id="custom-confirm-overlay" class="popup-overlay" style="display: none;"></div>
+<div id="custom-confirm-popup" style="display: none;">
+    <div class="custom-alert-header">
+        <h3 id="custom-confirm-title">Xác nhận hành động</h3>
+    </div>
+    <div class="custom-alert-content">
+        <p id="custom-confirm-message"></p>
+    </div>
+    <div class="custom-alert-actions" style="justify-content: flex-end; gap: 10px;">
+        <button id="custom-confirm-cancel-btn" class="popup-btn-secondary">Hủy</button>
+        <button id="custom-confirm-ok-btn" class="popup-btn-primary">Xác nhận</button>
+    </div>
+</div>
 </body>
 </html>
