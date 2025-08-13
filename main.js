@@ -26,13 +26,18 @@ async function fetchCategoryData(slug) {
 
     if (currentSourceId === 'nguonc') {
         try {
-            // Nguồn này cần tải 2 trang để có đủ phim
             const [data1, data2] = await Promise.all([
                 fetch(`${config.base}${config.paths.homeCategory(slug, 1)}`).then(res => res.json()),
                 fetch(`${config.base}${config.paths.homeCategory(slug, 2)}`).then(res => res.json())
             ]);
-            const items1 = config.dataAccess.items(data1) || [];
-            const items2 = config.dataAccess.items(data2) || [];
+            let items1 = config.dataAccess.items(data1) || [];
+            let items2 = config.dataAccess.items(data2) || [];
+            
+            // Áp dụng transform nếu có
+            if (config.dataAccess.transform) {
+                items1 = items1.map(movie => config.dataAccess.transform(movie));
+                items2 = items2.map(movie => config.dataAccess.transform(movie));
+            }
             return [...items1, ...items2];
         } catch (err) {
             console.error(`Lỗi tải 2 trang cho danh mục ${slug}:`, err);
@@ -42,7 +47,13 @@ async function fetchCategoryData(slug) {
         try {
             const res = await fetch(`${config.base}${path}`);
             const data = await res.json();
-            return config.dataAccess.items(data) || [];
+            let movies = config.dataAccess.items(data) || [];
+            
+            // Áp dụng transform nếu có
+            if (config.dataAccess.transform) {
+                movies = movies.map(movie => config.dataAccess.transform(movie));
+            }
+            return movies;
         } catch (err) {
             console.error(`Lỗi tải danh mục ${slug}:`, err);
             return [];
@@ -59,11 +70,16 @@ async function initializeHomepageSlider() {
     try {
         const response = await fetch(`${config.base}${config.paths.sliderList(30)}`);
         const data = await response.json();
-        const allMovies = config.dataAccess.items(data);
+        let allMovies = config.dataAccess.items(data);
 
         if (!allMovies || allMovies.length === 0) {
             sliderContainer.style.display = 'none';
             return;
+        }
+
+        // Áp dụng transform nếu có
+        if (config.dataAccess.transform) {
+            allMovies = allMovies.map(movie => config.dataAccess.transform(movie));
         }
 
         const shuffledMovies = [...allMovies].sort(() => 0.5 - Math.random());
@@ -214,7 +230,7 @@ function renderFavoritesSection() {
         favoritesSection.style.display = 'block';
         const favoritesCarousel = favoritesSection.querySelector('.movie-carousel');
         favoritesCarousel.innerHTML = '';
-        favoritesData.forEach(movie => favoritesCarousel.appendChild(createMovieCard(movie, false, true)));
+        favoritesData.forEach(movie => favoritesCarousel.appendChild(createMovieCard(movie)));
         attachCarouselEventsForSection(favoritesSection);
     } else {
         favoritesSection.style.display = 'none';
@@ -234,8 +250,13 @@ async function fetchAndShowPaginatedResults(url, title, page) {
     try {
         const res = await fetch(url);
         const data = await res.json();
-        const movies = config.dataAccess.items(data) || [];
+        let movies = config.dataAccess.items(data) || [];
         const pagination = config.dataAccess.pagination(data);
+
+        // Áp dụng transform nếu có
+        if (config.dataAccess.transform) {
+            movies = movies.map(movie => config.dataAccess.transform(movie));
+        }
 
         pageContent.innerHTML = `<h2 id="section-title">${title}</h2>`;
         if (movies.length > 0) {
@@ -248,7 +269,7 @@ async function fetchAndShowPaginatedResults(url, title, page) {
             if (!totalPages && pagination?.totalItems) {
                 totalPages = Math.ceil(pagination.totalItems / 14);
             }
-            if(config.id === 'nguonc') totalPages = undefined; // NguonC không tin cậy
+            if(config.id === 'nguonc') totalPages = undefined;
             
             paginationEl.classList.remove('hidden');
             renderPagination(page, totalPages);
@@ -262,7 +283,6 @@ async function fetchAndShowPaginatedResults(url, title, page) {
         console.error(err);
     }
 }
-
 /** Hiển thị trang thể loại */
 function showCategoryPage(slug, title, page = 1) {
     document.body.classList.remove('is-homepage');

@@ -50,13 +50,31 @@ const API_SOURCES = {
             transform: (movie) => {
                 const categories = movie.category || {};
                 let year = ''; let countryList = []; let categoryList = [];
+                // Vòng lặp này chủ yếu chỉ hoạt động trên trang chi tiết phim,
+                // vì danh sách phim thường không có 'movie.category'.
                 for (const key in categories) {
                     const groupName = categories[key].group?.name;
                     if (groupName === 'Năm') year = categories[key].list[0]?.name || '';
                     else if (groupName === 'Quốc gia') countryList = categories[key].list;
                     else if (groupName === 'Thể loại') categoryList = categories[key].list;
                 }
-                return { name: movie.name, year, country: countryList, category: categoryList, actor: movie.casts ? movie.casts.split(',').map(s => s.trim()) : [], content: movie.description, episode_total: movie.total_episodes, slug: movie.slug, origin_name: movie.original_name, thumb_url: movie.thumb_url, poster_url: movie.poster_url, episode_current: movie.episode_current };
+                // Trả về đối tượng đã được chuẩn hóa
+                return {
+                    name: movie.name,
+                    year: year || movie.year, // Cố gắng lấy 'year' từ 'categories' hoặc trực tiếp từ 'movie.year'
+                    country: countryList,
+                    category: categoryList,
+                    actor: movie.casts ? movie.casts.split(',').map(s => s.trim()) : [],
+                    content: movie.description,
+                    episode_total: movie.total_episodes,
+                    slug: movie.slug,
+                    origin_name: movie.original_name,
+                    thumb_url: movie.thumb_url,
+                    poster_url: movie.poster_url,
+                    episode_current: movie.episode_current,
+                    // === DÒNG MÃ MỚI ĐƯỢC THÊM VÀO ĐỂ SỬA LỖI ===
+                    language: movie.lang || movie.language
+                };
             }
         }
     },
@@ -155,48 +173,67 @@ async function getMovieDetails(slug) {
  * @param {boolean} isFromHistory - Cờ để xác định có phải phim từ lịch sử không.
  * @returns {HTMLElement} Phần tử DOM của thẻ phim.
  */
-function createMovieCard(movie, isFromHistory = false, isFromFavorites = false) {
+function createMovieCard(movie, isFromHistory = false) {
     if (!movie || !movie.slug) {
         console.error('Dữ liệu phim không hợp lệ, đã được bỏ qua:', movie);
         return document.createDocumentFragment();
     }
 
+    const movieSourceId = movie.source?.id || getCurrentApiConfig().id;
     const config = getCurrentApiConfig();
+
     const finalImageUrl = movie.thumb_url || movie.poster_url;
     const imageUrl = finalImageUrl 
         ? (finalImageUrl.startsWith('http') ? finalImageUrl : config.img_base + finalImageUrl) 
         : 'https://placehold.co/240x360/1a1a1a/555?text=No+Image';
         
     const name = movie.name || 'Tên không xác định';
-    const year = movie.year || 'N/A';
-    const episode = movie.episode_current || 'N/A';
+    const year = movie.year || 'NA';
+    const episode = movie.episode_current || 'NA';
     const country = movie.country?.[0]?.name || 'N/A';
     const language = movie.lang || movie.language || 'N/A';
     const slug = movie.slug;
 
+    const favorites = JSON.parse(localStorage.getItem('favoriteMovies') || '[]');
+    const isFavorited = favorites.some(fav => fav.slug === slug);
+
     const div = document.createElement('div');
     div.className = 'movie-item';
 
-    let deleteButtonHtml = '';
-    if (isFromHistory) {
-        deleteButtonHtml = `<button class="delete-history-btn" onclick="deleteFromHistory('${slug}', this)" title="Xóa khỏi lịch sử">&times;</button>`;
-    } else if (isFromFavorites) {
-        deleteButtonHtml = `<button class="delete-favorite-btn" onclick="deleteFromFavorites('${slug}', this)" title="Xóa khỏi yêu thích">&times;</button>`;
+    const deleteButtonHtml = isFromHistory 
+        ? `<button class="delete-history-btn" onclick="deleteFromHistory('${slug}', this)" title="Xóa khỏi lịch sử">&times;</button>`
+        : `<button class="card-favorite-btn ${isFavorited ? 'active' : ''}" onclick="toggleFavorite('${slug}', this)" title="Thêm vào yêu thích">
+               <i class="${isFavorited ? 'fas fa-heart' : 'far fa-heart'}"></i>
+           </button>`;
+
+    // === LOGIC MỚI: TẠO HTML CHO CÁC NHÃN VÀ THÔNG TIN PHỤ DỰA TRÊN NGUỒN ===
+    let labelsHtml = `<span class="card-label label-language">${language}</span>`; // Nhãn ngôn ngữ luôn hiển thị
+    let metaHtml = '';
+
+    // Nếu nguồn không phải là 'nguonc', thêm nhãn quốc gia và thông tin năm/tập
+    if (movieSourceId !== 'nguonc') {
+        // Chỉ thêm nhãn quốc gia nếu có dữ liệu
+        if (country !== 'N/A') {
+            labelsHtml = `<span class="card-label label-country">${country}</span>` + labelsHtml;
+        }
+        metaHtml = `
+            <span class="meta-year">${year}</span>
+            <span class="meta-episode">${episode}</span>
+        `;
     }
+    // =========================================================================
 
     div.innerHTML = `
         ${deleteButtonHtml}
         <div class="card-poster">
             <img src="${imageUrl}" alt="${name}" loading="lazy">
             <div class="card-labels">
-                <span class="card-label label-country">${country}</span>
-                <span class="card-label label-language">${language}</span>
+                ${labelsHtml}
             </div>
             <div class="card-content-overlay">
                 <h3>${name}</h3>
                 <div class="card-meta">
-                    <span class="meta-year">${year}</span>
-                    <span class="meta-episode">${episode}</span>
+                    ${metaHtml}
                 </div>
             </div>
             <div class="card-interaction-overlay">
@@ -235,7 +272,7 @@ async function openInfoPopup(slug) {
         const isTrailer = details.episode_current?.toLowerCase() === 'trailer';
         const hasNoEpisodes = !details.episode_total || details.episode_total == 0;
         const shouldDisableButton = isTrailer || hasNoEpisodes;
-        
+
         let watchButtonHtml;
         if (shouldDisableButton) {
             const disabledText = isTrailer ? 'Chỉ có Trailer' : 'Chưa có tập';
@@ -243,7 +280,7 @@ async function openInfoPopup(slug) {
         } else {
             watchButtonHtml = `<button class="popup-watch-btn" onclick="startWatching('${slug}')"><i class="fas fa-play"></i> Xem ngay</button>`;
         }
-        
+
         infoPopup.innerHTML = `
             <button class="popup-close-btn" onclick="closeInfoPopup()">×</button>
             <div class="info-title">${details.name || 'N/A'}</div>
@@ -284,38 +321,50 @@ function startWatching(slug) {
 
 /** Thêm/Xóa phim khỏi danh sách yêu thích. */
 async function toggleFavorite(slug, button) {
+    // Ngăn sự kiện click lan ra thẻ cha
+    if (event) event.stopPropagation();
+
     let favorites = JSON.parse(localStorage.getItem('favoriteMovies') || '[]');
     const movieIndex = favorites.findIndex(movie => movie.slug === slug);
+    const icon = button.querySelector('i');
 
     if (movieIndex > -1) {
         favorites.splice(movieIndex, 1);
         button.classList.remove('active');
+        if (icon) icon.className = 'far fa-heart'; // Đổi thành icon rỗng
         showCustomAlert('Đã xóa khỏi danh sách yêu thích.', 1500);
     } else {
         const movieDetails = await getMovieDetails(slug);
         if (movieDetails) {
             const config = getCurrentApiConfig();
-            const sourceIndex = Object.keys(API_SOURCES).indexOf(config.id);
             const favoriteData = {
-                slug: movieDetails.slug,
-                name: movieDetails.name,
-                origin_name: movieDetails.origin_name,
-                thumb_url: movieDetails.thumb_url,
-                poster_url: movieDetails.poster_url,
-                year: movieDetails.year,
-                episode_current: movieDetails.episode_current || '',
-                source: { id: config.id, name: config.name, number: sourceIndex + 1 }
+                slug: movieDetails.slug, name: movieDetails.name, thumb_url: movieDetails.thumb_url,
+                poster_url: movieDetails.poster_url, year: movieDetails.year,
+                episode_current: movieDetails.episode_current || '', country: movieDetails.country, lang: movieDetails.lang,
+                source: { id: config.id, name: config.name, number: Object.keys(API_SOURCES).indexOf(config.id) + 1 }
             };
             favorites.unshift(favoriteData);
             button.classList.add('active');
+            if (icon) icon.className = 'fas fa-heart'; // Đổi thành icon đặc
             showCustomAlert('Đã thêm vào danh sách yêu thích.', 1500);
         }
     }
     localStorage.setItem('favoriteMovies', JSON.stringify(favorites));
 
-    // Nếu có section 'favorites-section' trên trang, render lại nó
+    // Cập nhật lại giao diện các mục yêu thích nếu có
     if (document.getElementById('favorites-section') && typeof renderFavoritesSection === 'function') {
         renderFavoritesSection();
+    }
+    if (document.getElementById('favorites-grid') && typeof favoritesGrid !== 'undefined') {
+        // Cập nhật lại trang favorites.html nếu đang ở đó
+        const grid = document.getElementById('favorites-grid');
+        const updatedFavorites = JSON.parse(localStorage.getItem('favoriteMovies') || '[]');
+        grid.innerHTML = '';
+        if (updatedFavorites.length > 0) {
+            updatedFavorites.forEach(movie => grid.appendChild(createMovieCard(movie)));
+        } else {
+            grid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center;">Bạn chưa có phim yêu thích nào.</p>';
+        }
     }
 }
 
@@ -341,9 +390,9 @@ function showCustomAlert(message, durationInMs, callback) {
     countdownEl.style.display = hasCountdown ? 'block' : 'none';
     document.getElementById('custom-alert-ok-btn').style.display = hasCountdown ? 'none' : 'block';
 
-    if(hasCountdown) {
+    if (hasCountdown) {
         const updateCountdownText = () => {
-             countdownEl.textContent = `Tự động chuyển sau ${secondsLeft}s...`;
+            countdownEl.textContent = `Tự động chuyển sau ${secondsLeft}s...`;
         };
         updateCountdownText();
         alertCountdownInterval = setInterval(() => {
@@ -356,10 +405,10 @@ function showCustomAlert(message, durationInMs, callback) {
             }
         }, 1000);
     }
-    
+
     setTimeout(() => {
         clearInterval(alertCountdownInterval);
-        if(hasCountdown) {
+        if (hasCountdown) {
             if (callback) callback();
         } else {
             overlay.style.display = 'none';
@@ -416,7 +465,7 @@ function initializeSharedUI(searchHandler) {
     if (fabContainer) {
         fabContainer.addEventListener('click', (e) => {
             if (e.target.closest('#options-fab')) {
-                 fabContainer.classList.toggle('open');
+                fabContainer.classList.toggle('open');
             }
         });
     }
@@ -434,35 +483,35 @@ function initializeSharedUI(searchHandler) {
             updateThemeIcon();
         });
     }
-    
+
     // Panel chọn nguồn phim
     const sourceToggleBtn = document.getElementById('source-toggle-btn');
     const sourceSelectorOverlay = document.getElementById('source-selector-overlay');
     const sourceSelectorPanel = document.getElementById('source-selector-panel');
     const closeBtn = document.getElementById('close-source-selector-btn');
-    if(sourceToggleBtn && sourceSelectorOverlay && sourceSelectorPanel && closeBtn) {
+    if (sourceToggleBtn && sourceSelectorOverlay && sourceSelectorPanel && closeBtn) {
         const openPanel = () => {
             const contentDiv = document.getElementById('source-selector-content');
             contentDiv.innerHTML = '';
             const currentSourceId = getCurrentApiConfig().id;
-    
+
             Object.values(API_SOURCES).forEach((source, index) => {
                 const button = document.createElement('button');
                 button.className = 'source-btn';
                 button.textContent = `${index + 1}. ${source.name}`;
                 if (source.id === currentSourceId) button.disabled = true;
-    
+
                 button.addEventListener('click', () => {
                     localStorage.setItem('apiSourceId', source.id);
                     closePanel();
                     showCustomAlert(`Đã đổi sang ${source.name}.`, 2000, () => {
-                         // Luôn chuyển về trang chủ khi đổi nguồn để tránh lỗi
+                        // Luôn chuyển về trang chủ khi đổi nguồn để tránh lỗi
                         window.location.href = 'index.html';
                     });
                 });
                 contentDiv.appendChild(button);
             });
-    
+
             sourceSelectorOverlay.style.display = 'block';
             sourceSelectorPanel.style.display = 'block';
         };
@@ -490,7 +539,7 @@ function initializeSharedUI(searchHandler) {
             headerEl.classList.toggle('scrolled', window.scrollY > 50);
         }, { passive: true });
     }
-    
+
     // Thanh tìm kiếm
     const searchInput = document.getElementById('search-input');
     const searchGroup = document.querySelector('.search-group');
@@ -527,10 +576,10 @@ function initializeSharedUI(searchHandler) {
 
     // Popup và Overlay
     const popupOverlay = document.getElementById('popup-overlay');
-    if(popupOverlay) popupOverlay.addEventListener('click', closeInfoPopup);
+    if (popupOverlay) popupOverlay.addEventListener('click', closeInfoPopup);
 
     const alertOkBtn = document.getElementById('custom-alert-ok-btn');
-    if(alertOkBtn) {
+    if (alertOkBtn) {
         alertOkBtn.addEventListener('click', () => {
             document.getElementById('custom-alert-overlay').style.display = 'none';
             document.getElementById('custom-alert-popup').style.display = 'none';
@@ -559,35 +608,6 @@ function deleteFromHistory(slug, buttonElement) {
                 if (container && container.children.length === 0) {
                     const section = container.closest('.category-section');
                     if (section) section.style.display = 'none';
-                }
-            }, 300);
-        }
-    });
-}
-
-function deleteFromFavorites(slug, buttonElement) {
-    event.stopPropagation();
-    showCustomConfirm("Bạn có chắc chắn muốn xóa phim này khỏi danh sách yêu thích?", () => {
-        let favorites = JSON.parse(localStorage.getItem('favoriteMovies') || '[]');
-        const updatedFavorites = favorites.filter(movie => movie.slug !== slug);
-        localStorage.setItem('favoriteMovies', JSON.stringify(updatedFavorites));
-        
-        showCustomAlert('Đã xóa khỏi danh sách yêu thích.', 1500);
-
-        const movieCard = buttonElement.closest('.movie-item');
-        if (movieCard) {
-            movieCard.style.transition = 'opacity 0.3s ease';
-            movieCard.style.opacity = '0';
-            setTimeout(() => {
-                movieCard.remove();
-                const container = movieCard.parentElement;
-                if (container && container.children.length === 0) {
-                    if (container.id === 'favorites-grid') {
-                        container.innerHTML = '<p style="grid-column: 1 / -1; text-align: center;">Bạn chưa có phim yêu thích nào.</p>';
-                    } else {
-                        const section = container.closest('.category-section');
-                        if (section) section.style.display = 'none';
-                    }
                 }
             }, 300);
         }

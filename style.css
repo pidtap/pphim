@@ -1861,8 +1861,7 @@ body.light-mode .slide-text-wrapper .meta {
     opacity: 1; /* Hiển thị lớp phủ và icon play */
 }
 
-.delete-history-btn,
-.delete-favorite-btn {
+.delete-history-btn {
     position: absolute;
     top: 8px;
     left: 8px;
@@ -1882,20 +1881,49 @@ body.light-mode .slide-text-wrapper .meta {
     transition: opacity 0.2s, transform 0.2s;
 }
 
-.movie-item:hover .delete-history-btn,
-.movie-item:hover .delete-favorite-btn {
+.movie-item:hover .delete-history-btn{
     opacity: 1; /* Rõ hơn khi hover vào thẻ phim */
 }
 
-.delete-history-btn:hover,
-.delete-favorite-btn:hover {
+.delete-history-btn:hover {
     transform: scale(1.1);
     background-color: #e50914;
     border-color: #e50914;
 }
 .movie-item:hover .delete-history-btn { opacity: 1; }
 .delete-history-btn:hover { transform: scale(1.1); }
+/* === ICON YÊU THÍCH TRÊN THẺ PHIM === */
 
+.card-favorite-btn {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 5;
+    width: 32px;
+    height: 32px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.card-favorite-btn:hover {
+    transform: scale(1.1);
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+/* Trạng thái đã yêu thích */
+.card-favorite-btn.active {
+    background-color: #e50914;
+    border-color: #e50914;
+    color: #fff;
+}
 /* 4. Nút "Xem thêm" với định dạng mới */
 .see-more-link {
     color: var(--text-subtle);
@@ -1938,7 +1966,7 @@ body.light-mode .slide-text-wrapper .meta {
     line-height: 24px; /* Căn giữa dấu 'X' */
     text-align: center;
     cursor: pointer;
-    opacity: 0; /* Mặc định sẽ ẩn */
+    opacity: .5; /* Mặc định sẽ ẩn */
     transition: opacity 0.2s, transform 0.2s;
 }
 

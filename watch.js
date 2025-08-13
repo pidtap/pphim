@@ -149,7 +149,7 @@ function updateEpisodeList(serverIndex) {
 }
 
 /** Phát một tập phim */
-function playEpisode(m3u8Link, embedLink, serverIndex, episodeIndex, episodeName) { // Thêm episodeName
+function playEpisode(m3u8Link, embedLink, serverIndex, episodeIndex, episodeName) {
     if ((!m3u8Link || m3u8Link === 'undefined') && (!embedLink || embedLink === 'undefined')) {
         showCustomAlert("Tập phim này hiện không có nguồn phát.", 2000);
         return;
@@ -160,9 +160,9 @@ function playEpisode(m3u8Link, embedLink, serverIndex, episodeIndex, episodeName
     const playerContainer = document.getElementById('video-player-container');
     playerContainer.style.display = 'block';
     
-    // ... (phần code xử lý iframe và videojs giữ nguyên)
     const videoJsPlayerEl = document.getElementById('my-video-player');
     const iframePlayerEl = document.getElementById('iframe-player');
+
     if (getCurrentApiConfig().id === 'nguonc' && embedLink) {
         videoJsPlayerEl.style.display = 'none';
         if (videoPlayer) videoPlayer.pause();
@@ -178,26 +178,51 @@ function playEpisode(m3u8Link, embedLink, serverIndex, episodeIndex, episodeName
                 autoplay: true, controls: true, responsive: true, fluid: true,
                 playbackRates: [0.5, 1, 1.5, 2]
             });
+
             videoPlayer.on('ended', handleVideoEnded);
+            
+            // SỬA LỖI 1: Cập nhật sự kiện timeupdate để lưu đúng tiến trình
             videoPlayer.on('timeupdate', () => {
-                saveWatchProgress(currentMovieSlug, null, serverIndex, episodeIndex, videoPlayer.currentTime());
+                // Luôn lấy index mới nhất được lưu trên player
+                const currentServerIndex = videoPlayer.currentServerIndex;
+                const currentEpisodeIndex = videoPlayer.currentEpisodeIndex;
+                // Chỉ lưu khi các index này đã được định nghĩa
+                if (typeof currentEpisodeIndex !== 'undefined') {
+                    saveWatchProgress(currentMovieSlug, null, currentServerIndex, currentEpisodeIndex, videoPlayer.currentTime());
+                }
             });
-            videoPlayer.one('loadedmetadata', () => {
-                const progress = getWatchProgress(currentMovieSlug);
-                const savedTime = progress?.episodes?.[episodeIndex]?.time;
-                if (savedTime > 5) videoPlayer.currentTime(savedTime);
+
+            // SỬA LỖI 2: Cập nhật sự kiện loadedmetadata để phát lại đúng mốc thời gian
+            videoPlayer.on('loadedmetadata', () => { // Thay .one bằng .on
+                // Luôn lấy index mới nhất được lưu trên player
+                const currentEpisodeIndex = videoPlayer.currentEpisodeIndex;
+                if (typeof currentEpisodeIndex !== 'undefined') {
+                    const progress = getWatchProgress(currentMovieSlug);
+                    const savedTime = progress?.episodes?.[currentEpisodeIndex]?.time;
+                    // Nếu có thời gian đã lưu > 5 giây thì tua đến
+                    if (savedTime && savedTime > 5) {
+                        videoPlayer.currentTime(savedTime);
+                    }
+                }
             });
         }
+
+        // === THAY ĐỔI QUAN TRỌNG NHẤT ===
+        // Lưu index của tập và server hiện tại vào chính đối tượng player
+        // mỗi khi một tập mới được chọn.
+        videoPlayer.currentServerIndex = serverIndex;
+        videoPlayer.currentEpisodeIndex = episodeIndex;
+        // ================================
+
         videoPlayer.src({ src: m3u8Link, type: 'application/x-mpegURL' });
         videoPlayer.play();
     }
     
     saveWatchProgress(currentMovieSlug, null, serverIndex, episodeIndex);
-    updateWatchHistory(episodeName); // Truyền episodeName vào đây
+    updateWatchHistory(episodeName);
     updateNavButtonStates(episodeIndex);
     document.getElementById('episode-info').textContent = `Bạn đang xem: ${episodeName}`;
 }
-
 function handleVideoEnded() {
     if (isAutoNextEnabled) playNextEpisode();
 }

@@ -55,8 +55,9 @@ function renderHybridHero(details) {
                     <p><strong>Tên gốc:</strong> ${originName}</p>
                     <p><strong>Ngôn ngữ:</strong> ${language}</p>
                     <p><strong>Diễn viên:</strong> ${actorsText}</p>
+                    <p class="movie-detail-description"><strong>Mô tả:</strong>${(details.content || 'Chưa có mô tả.').replace(/<[^>]*>?/gm, '')}</p>
                 </div>
-                <p class="movie-detail-description">${(details.content || 'Chưa có mô tả.').replace(/<[^>]*>?/gm, '')}</p>
+                
                 <div class="movie-detail-actions">
                     <a href="watch.html?slug=${details.slug}" class="action-btn watch-now-btn">
                         <i class="fas fa-play"></i> Xem Phim
@@ -81,7 +82,7 @@ function renderFavoritesSection() {
         favoritesSection.style.display = 'block';
         const favoritesCarousel = favoritesSection.querySelector('.movie-carousel');
         favoritesCarousel.innerHTML = '';
-        favoritesData.slice(0, 10).forEach(movie => favoritesCarousel.appendChild(createMovieCard(movie, false, true)));
+        favoritesData.slice(0, 10).forEach(movie => favoritesCarousel.appendChild(createMovieCard(movie)));
         attachCarouselEventsForSection(favoritesSection);
     } else {
         favoritesSection.style.display = 'none';
