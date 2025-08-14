@@ -240,32 +240,34 @@ function createMovieCard(movie, isFromHistory = false) {
 
     const interactionOverlay = div.querySelector('.card-interaction-overlay');
     if (interactionOverlay) {
-        if (isFromHistory) {
-            // Nếu là phim trong lịch sử, áp dụng logic tự động chuyển nguồn
-            interactionOverlay.onclick = () => {
-                const currentSourceId = getCurrentApiConfig().id;
-                const movieSource = movie.source;
+        // === LOGIC MỚI: ÁP DỤNG CHUNG CHO CẢ LỊCH SỬ VÀ YÊU THÍCH ===
+        const currentSourceId = getCurrentApiConfig().id;
+        const movieSource = movie.source;
 
-                if (movieSource && movieSource.id && movieSource.id !== currentSourceId) {
+        // Nếu phim có thông tin nguồn (tức là phim đã lưu từ Lịch sử hoặc Yêu thích)
+        if (movieSource && movieSource.id) {
+            interactionOverlay.onclick = () => {
+                if (movieSource.id !== currentSourceId) {
+                    // Nếu nguồn khác nhau -> đổi nguồn, thông báo rồi điều hướng
                     localStorage.setItem('apiSourceId', movieSource.id);
                     const targetSourceName = API_SOURCES[movieSource.id]?.name || 'Nguồn không xác định';
                     showCustomAlert(
                         `Đã tự động chuyển sang ${targetSourceName} để xem phim này.`,
                         2000,
-                        // THAY ĐỔI TẠI ĐÂY: Chuyển đến movie.html
                         () => { window.location.href = `movie.html?slug=${movie.slug}`; }
                     );
                 } else {
-                    // THAY ĐỔI TẠI ĐÂY: Chuyển đến movie.html
+                    // Nếu nguồn giống nhau -> điều hướng trực tiếp
                     window.location.href = `movie.html?slug=${movie.slug}`;
                 }
             };
         } else {
-            // Nếu là phim thông thường, giữ nguyên logic cũ là đi đến trang chi tiết
+            // Nếu là phim thông thường (không có thông tin nguồn) -> giữ nguyên logic cũ
             interactionOverlay.onclick = () => {
                 window.location.href = `movie.html?slug=${slug}`;
             };
         }
+        // ==========================================================
     }
 
     return div;
