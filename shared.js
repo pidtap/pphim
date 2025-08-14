@@ -182,14 +182,11 @@ function createMovieCard(movie, isFromHistory = false) {
     const movieSourceId = movie.source?.id || getCurrentApiConfig().id;
     const config = getCurrentApiConfig();
 
-    // === SỬA LỖI: TÌM ẢNH Ở NHIỀU NƠI HƠN ===
-    // Thêm 'movie.poster' và 'movie.img' làm các lựa chọn dự phòng
     const finalImageUrl = movie.thumb_url || movie.poster_url || movie.poster || movie.img;
-    const imageUrl = finalImageUrl 
-        ? (finalImageUrl.startsWith('http') ? finalImageUrl : config.img_base + finalImageUrl) 
+    const imageUrl = finalImageUrl
+        ? (finalImageUrl.startsWith('http') ? finalImageUrl : config.img_base + finalImageUrl)
         : 'https://placehold.co/240x360/1a1a1a/555?text=No+Image';
-    // ==========================================
-        
+
     const name = movie.name || 'Tên không xác định';
     const year = movie.year || 'NA';
     const episode = movie.episode_current || 'NA';
@@ -203,7 +200,7 @@ function createMovieCard(movie, isFromHistory = false) {
     const div = document.createElement('div');
     div.className = 'movie-item';
 
-    const deleteButtonHtml = isFromHistory 
+    const deleteButtonHtml = isFromHistory
         ? `<button class="delete-history-btn" onclick="deleteFromHistory('${slug}', this)" title="Xóa khỏi lịch sử">&times;</button>`
         : `<button class="card-favorite-btn ${isFavorited ? 'active' : ''}" onclick="toggleFavorite('${slug}', this)" title="Thêm vào yêu thích">
                <i class="${isFavorited ? 'fas fa-heart' : 'far fa-heart'}"></i>
@@ -243,9 +240,32 @@ function createMovieCard(movie, isFromHistory = false) {
 
     const interactionOverlay = div.querySelector('.card-interaction-overlay');
     if (interactionOverlay) {
-        interactionOverlay.onclick = () => {
-            window.location.href = `movie.html?slug=${slug}`;
-        };
+        if (isFromHistory) {
+            // Nếu là phim trong lịch sử, áp dụng logic tự động chuyển nguồn
+            interactionOverlay.onclick = () => {
+                const currentSourceId = getCurrentApiConfig().id;
+                const movieSource = movie.source;
+
+                if (movieSource && movieSource.id && movieSource.id !== currentSourceId) {
+                    localStorage.setItem('apiSourceId', movieSource.id);
+                    const targetSourceName = API_SOURCES[movieSource.id]?.name || 'Nguồn không xác định';
+                    showCustomAlert(
+                        `Đã tự động chuyển sang ${targetSourceName} để xem phim này.`,
+                        2000,
+                        // THAY ĐỔI TẠI ĐÂY: Chuyển đến movie.html
+                        () => { window.location.href = `movie.html?slug=${movie.slug}`; }
+                    );
+                } else {
+                    // THAY ĐỔI TẠI ĐÂY: Chuyển đến movie.html
+                    window.location.href = `movie.html?slug=${movie.slug}`;
+                }
+            };
+        } else {
+            // Nếu là phim thông thường, giữ nguyên logic cũ là đi đến trang chi tiết
+            interactionOverlay.onclick = () => {
+                window.location.href = `movie.html?slug=${slug}`;
+            };
+        }
     }
 
     return div;
@@ -682,14 +702,22 @@ function deleteFromHistory(slug, buttonElement) {
 
         const movieCard = buttonElement.closest('.movie-item');
         if (movieCard) {
+            // === SỬA LỖI TẠI ĐÂY ===
+            // Lấy ra container (thư mục cha) TRƯỚC KHI xóa thẻ phim
+            const container = movieCard.parentElement; 
+
             movieCard.style.transition = 'opacity 0.3s ease';
             movieCard.style.opacity = '0';
             setTimeout(() => {
-                movieCard.remove();
-                const container = movieCard.parentElement;
+                movieCard.remove(); // Bây giờ mới xóa thẻ phim
+                
+                // Kiểm tra container xem có rỗng không
                 if (container && container.children.length === 0) {
                     const section = container.closest('.category-section');
-                    if (section) section.style.display = 'none';
+                    if (section) {
+                        // Nếu rỗng, ẩn toàn bộ section (bao gồm cả tiêu đề)
+                        section.style.display = 'none'; 
+                    }
                 }
             }, 300);
         }
